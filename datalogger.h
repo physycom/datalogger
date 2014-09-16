@@ -34,7 +34,7 @@
 #define MAJOR_VERSION 0
 #define MINOR_VERSION 5
 
-#define USE_HOST_MEMORY
+// #define USE_HOST_MEMORY
 
 
 

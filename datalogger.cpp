@@ -606,7 +606,6 @@ int main(int narg, char ** args)
 
   Data *data;
   std::ofstream logfile;
-  logfile.open("../output/serial.log", std::ofstream::out);
 
 
 #if defined(USE_BINARY_FILE)
@@ -647,14 +646,17 @@ int main(int narg, char ** args)
   portacom.set_portname_stdin();
   portacom.set_baudrate_stdin();
 
+  /*
   TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
   serial.setTimeout(boost::posix_time::seconds(0));
+  */
 
-
+  SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
 
 
   switch (systeminfo) {
 
+    /*
   case 1: //Infomobility
     InfomobilityData dato;
 
@@ -664,6 +666,7 @@ int main(int narg, char ** args)
 #else
     data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
 #endif
+    logfile.open("../output/i_serial.log", std::ofstream::out);
 
     try
     {
@@ -707,6 +710,7 @@ int main(int narg, char ** args)
       return 1;
     }
     break;
+    */
 
 
   case 2: // MagnetiMarelli
@@ -716,6 +720,8 @@ int main(int narg, char ** args)
 #else
     data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
 #endif
+    logfile.open("../output/m_serial.log", std::ofstream::out);
+
     try {
       std::string sst;
       std::vector<std::string> strs;
@@ -735,7 +741,8 @@ int main(int narg, char ** args)
           exit = true;
         }
 
-        sst = serial.readStringUntil("\n");
+        sst = sserial.readLine();
+        //sst = serial.readStringUntil("\n");
 
 
         if (sst[0] == '{')
@@ -747,6 +754,7 @@ int main(int narg, char ** args)
           boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
           nterm = int(strs.size());
           for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+          for (int i = 0; i < nterm; i++) std::cout << dw.a[i] << " "; std::cout << std::endl;
         }
         else
         {
@@ -755,6 +763,7 @@ int main(int narg, char ** args)
           nterm = int(strs.size());
           for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
           for (int i = 0; i < nterm; i++) dw.a[i] /= 256.;
+          for (int i = 0; i < nterm; i++) std::cout << dw.a[i] << " "; std::cout << std::endl;
         }
         break;
 
@@ -781,6 +790,8 @@ int main(int narg, char ** args)
 #else
     data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
 #endif
+    logfile.open("../output/t_serial.log", std::ofstream::out);
+
     try {
       std::string sst;
       std::vector<std::string> strs;
@@ -789,6 +800,7 @@ int main(int narg, char ** args)
       int indiceData = 0;
       bool exit = false;
 
+      std::cout << "entro nel while" << std::flush << std::endl;
       while (exit == false)
       {
 #ifdef _WIN32
@@ -800,10 +812,18 @@ int main(int narg, char ** args)
           exit = true;
         }
 
-        sst = serial.readStringUntil("\n");
+        std::cout << "ho fatto il check del tasto" << std::flush << std::endl;
+
+        sst = sserial.readLine();
+        //sst = serial.readStringUntil("\n");
+
+        std::cout << "ho letto una stringa" << std::flush << std::endl;
+
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
         nterm = int(strs.size());
         for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+
+        for (int i = 0; i < nterm; i++) std::cout << dw.a[i] << " "; std::cout << std::endl;
 
         data[indiceData] = dw;
         data[DIMENSIONE_MAX].a[0] = indiceData;
@@ -820,11 +840,13 @@ int main(int narg, char ** args)
 
   case 4: // ViaSat
 #if defined (USE_HOST_MEMORY)
-    remove_host_memory("T_DATA");
-    data = (Data*)allocate_host_memory("T_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
+    remove_host_memory("V_DATA");
+    data = (Data*)allocate_host_memory("V_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
 #else
     data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
 #endif
+    logfile.open("../output/v_serial.log", std::ofstream::out);
+
     try {
       std::string sst;
       std::vector<std::string> strs;
@@ -844,7 +866,9 @@ int main(int narg, char ** args)
           exit = true;
         }
 
-        sst = serial.readStringUntil("\n");
+        sst = sserial.readLine();
+        //sst = serial.readStringUntil("\n");
+
         if (sst[1] == 'G')
         {
           replace(sst.begin(), sst.end(), '{', ' ');
@@ -854,6 +878,9 @@ int main(int narg, char ** args)
           nterm = int(strs.size());
 
           for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+
+          for (int i = 0; i < nterm; i++) std::cout << dw.a[i] << " "; std::cout << std::endl;
+
         }
         else
         {
@@ -867,9 +894,9 @@ int main(int narg, char ** args)
 
           for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
           for (int i = 0; i < 3; i++) dw.a[i] /= 1000.;
-        }
 
-        for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+          for (int i = 0; i < nterm; i++) std::cout << dw.a[i] << " "; std::cout << std::endl;
+        }
 
         data[indiceData] = dw;
         data[DIMENSIONE_MAX].a[0] = indiceData;
