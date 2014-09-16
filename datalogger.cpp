@@ -17,7 +17,7 @@
 ************************************************************************/
 
 
-#include "infomobility.h"
+#include "datalogger.h"
 
 //using namespace boost;
 
@@ -243,6 +243,66 @@ void TimeoutSerial::readCompleted(const boost::system::error_code& error,
 //public:
 //  GPSData();
 //};
+
+
+
+class COMport
+{
+private:
+  std::string portname;
+  int baudrate;
+public:
+  void set_portname(std::string);
+  void set_portname_stdin();
+  void set_baudrate(int);
+  void set_baudrate_stdin();
+  std::string get_portname();
+  int get_baudrate();
+};
+
+
+
+void COMport::set_portname(std::string port)
+{
+  portname = port;
+}
+
+
+
+void COMport::set_portname_stdin()
+{
+  std::cout << "Insert portname (on Win, tipically it is a COMxx, on Unix-like it is a /dev/ttyUSBxx): ";
+  std::cin >> portname;
+}
+
+
+
+std::string COMport::get_portname()
+{
+  return portname;
+}
+
+
+
+void COMport::set_baudrate(int baud)
+{
+  baudrate = baud;
+}
+
+
+
+void COMport::set_baudrate_stdin()
+{
+  std::cout << "Insert baudrate (tipically 115200): ";
+  std::cin >> baudrate;
+}
+
+
+
+int COMport::get_baudrate()
+{
+  return baudrate;
+}
 
 
 
@@ -535,81 +595,306 @@ void InfomobilityData::printGPSData()
 
 int main(int narg, char ** args)
 {
-  InfomobilityData* dati;
-  dati = new InfomobilityData[DIMENSIONE_MAX];
-  int i = 0;
+  short systeminfo = 0;
+  std::cout << "Datalogger v" << MAJOR_VERSION << "." << MINOR_VERSION << std::endl;
+  std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
+  std::cout << "1. Infomobility" << std::endl;
+  std::cout << "2. MagnetiMarelli" << std::endl;
+  std::cout << "3. Texa" << std::endl;
+  std::cout << "4. ViaSat" << std::endl;
+  std::cin >> systeminfo;
+
+  Data *data;
+  std::ofstream logfile;
+  logfile.open("../output/serial.log", std::ofstream::out);
+
 
 #if defined(USE_BINARY_FILE)
   // change next two lines with another input source when needed
+  std::cout << "Reading args[1]=" << args[1] << " as the input file" << std::endl;
   std::ifstream inputfile;
   inputfile.open(args[1], std::ios::binary | std::ios::in);
+
+  InfomobilityData dato;
 
   while (1)
   {
     if (inputfile.eof()) break;
     if (i >= DIMENSIONE_MAX) break;
-    dati[i].loadheader(inputfile);
-    dati[i].allocatePayload(dati[i].getPayloadSize());
-    dati[i].readPayload(inputfile);
-    dati[i].loadfooter(inputfile);
-    dati[i].checkfooter();
-    //dati[i].printheader();
-    //dati[i].printfooter();
-    //dati[i].deAllocatePayload();
-    if (dati[i].isGPSData())
+    dato.loadheader(inputfile);
+    dato.allocatePayload(dato.getPayloadSize());
+    dato.readPayload(inputfile);
+    dato.loadfooter(inputfile);
+    dato.checkfooter();
+    //dato.printheader();
+    //dato.printfooter();
+    //dato.deAllocatePayload();
+    if (dato.isGPSData())
     {
-      dati[i].recordGPSDataFromPayload();
-      dati[i].printGPSData();
+      dato.recordGPSDataFromPayload();
+      dato.printGPSData();
     }
     else
     {
-      dati[i].recordACCDataFromPayload();
-      dati[i].printACCData();
+      dato.recordACCDataFromPayload();
+      dato.printACCData();
     }
 
     i++;
-  }
+}
 #elif defined(USE_SERIAL_PORT)
-  TimeoutSerial serial("COM26", 115200);
+  COMport portacom;
+  portacom.set_portname_stdin();
+  portacom.set_baudrate_stdin();
+
+  TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
   serial.setTimeout(boost::posix_time::seconds(0));
 
-  std::ifstream inputfile;
-  inputfile.open(args[1], std::ios::binary | std::ios::in);
 
-  try
-  {
-    dati[i].loadheaderS(serial);
-    dati[i].allocatePayload(dati[i].getPayloadSize());
-    dati[i].readPayloadS(serial);
-    dati[i].loadfooterS(serial);
-    dati[i].checkfooter();
-    //dati[i].printheader();
-    //dati[i].printfooter();
-    //dati[i].deAllocatePayload();
-    if (dati[i].isGPSData())
-    {
-      dati[i].recordGPSDataFromPayload();
-      dati[i].printGPSData();
-    }
-    else
-    {
-      dati[i].recordACCDataFromPayload();
-      dati[i].printACCData();
-    }
 
-    i++;
-  }
-  catch (boost::system::system_error& e)
-  {
-    std::cout << "Error: " << e.what() << std::endl;
-    return 1;
-  }
+
+  switch (systeminfo) {
+
+  case 1: //Infomobility
+    InfomobilityData dato;
+
+#if defined (USE_HOST_MEMORY)
+    remove_host_memory("I_DATA");
+    data = (Data*)allocate_host_memory("I_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
+#else
+    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
+#endif
+
+    try
+    {
+      bool exit = false;
+
+      while (exit == false)
+      {
+#ifdef _WIN32
+        if (GetAsyncKeyState(VK_ESCAPE))
+#else
+        if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
+#endif
+        {
+          exit = true;
+        }
+
+        dato.loadheaderS(serial);
+        dato.allocatePayload(dato.getPayloadSize());
+        dato.readPayloadS(serial);
+        dato.loadfooterS(serial);
+        dato.checkfooter();
+        //dato.printheader();
+        //dato.printfooter();
+        //dato.deAllocatePayload();
+        if (dato.isGPSData())
+        {
+          dato.recordGPSDataFromPayload();
+          dato.printGPSData();
+        }
+        else
+        {
+          dato.recordACCDataFromPayload();
+          dato.printACCData();
+        }
+
+      }
+    }
+    catch (boost::system::system_error& e)
+    {
+      std::cout << "Error: " << e.what() << std::endl;
+      return 1;
+    }
+    break;
+
+
+  case 2: // MagnetiMarelli
+#if defined (USE_HOST_MEMORY)
+    remove_host_memory("M_DATA");
+    data = (Data*)allocate_host_memory("M_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
+#else
+    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
+#endif
+    try {
+      std::string sst;
+      std::vector<std::string> strs;
+      int nterm = 0;
+      Data dw;
+      int indiceData = 0;
+      bool exit = false;
+
+      while (exit == false)
+      {
+#ifdef _WIN32
+        if (GetAsyncKeyState(VK_ESCAPE))
+#else
+        if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
+#endif
+        {
+          exit = true;
+        }
+
+        sst = serial.readStringUntil("\n");
+
+
+        if (sst[0] == '{')
+        {
+
+          replace(sst.begin(), sst.end(), '{', ' ');
+          replace(sst.begin(), sst.end(), '}', ' ');
+          replace(sst.begin(), sst.end(), ';', ' ');
+          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
+          nterm = int(strs.size());
+          for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+        }
+        else
+        {
+          std::replace(sst.begin(), sst.end(), ';', ' ');
+          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
+          nterm = int(strs.size());
+          for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+          for (int i = 0; i < nterm; i++) dw.a[i] /= 256.;
+        }
+        break;
+
+
+        data[indiceData] = dw;
+        data[DIMENSIONE_MAX].a[0] = indiceData;
+        indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+      }
+    }
+    catch (boost::system::system_error& e)
+    {
+      std::cout << "Error: " << e.what() << std::endl;
+      return 1;
+    }
+    break;
+
+
+
+
+  case 3: // Texa
+#if defined (USE_HOST_MEMORY)
+    remove_host_memory("T_DATA");
+    data = (Data*)allocate_host_memory("T_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
+#else
+    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
+#endif
+    try {
+      std::string sst;
+      std::vector<std::string> strs;
+      int nterm = 0;
+      Data dw;
+      int indiceData = 0;
+      bool exit = false;
+
+      while (exit == false)
+      {
+#ifdef _WIN32
+        if (GetAsyncKeyState(VK_ESCAPE))
+#else
+        if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
+#endif
+        {
+          exit = true;
+        }
+
+        sst = serial.readStringUntil("\n");
+        boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
+        nterm = int(strs.size());
+        for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+
+        data[indiceData] = dw;
+        data[DIMENSIONE_MAX].a[0] = indiceData;
+        indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+      }
+    }
+    catch (boost::system::system_error& e)
+    {
+      std::cout << "Error: " << e.what() << std::endl;
+      return 1;
+    }
+    break;
+
+
+  case 4: // ViaSat
+#if defined (USE_HOST_MEMORY)
+    remove_host_memory("T_DATA");
+    data = (Data*)allocate_host_memory("T_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
+#else
+    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
+#endif
+    try {
+      std::string sst;
+      std::vector<std::string> strs;
+      int nterm = 0;
+      Data dw;
+      int indiceData = 0;
+      bool exit = false;
+
+      while (exit == false)
+      {
+#ifdef _WIN32
+        if (GetAsyncKeyState(VK_ESCAPE))
+#else
+        if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
+#endif
+        {
+          exit = true;
+        }
+
+        sst = serial.readStringUntil("\n");
+        if (sst[1] == 'G')
+        {
+          replace(sst.begin(), sst.end(), '{', ' ');
+          replace(sst.begin(), sst.end(), '}', ' ');
+          replace(sst.begin(), sst.end(), ';', ' ');
+          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
+          nterm = int(strs.size());
+
+          for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+        }
+        else
+        {
+          std::replace(sst.begin(), sst.end(), '$', ' ');
+          std::replace(sst.begin(), sst.end(), 'A', ' ');
+          std::replace(sst.begin(), sst.end(), '*', ' ');
+          sst.insert(8, " ", 1);
+          sst.insert(15, " ", 1);
+          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
+          nterm = int(strs.size());
+
+          for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+          for (int i = 0; i < 3; i++) dw.a[i] /= 1000.;
+        }
+
+        for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+
+        data[indiceData] = dw;
+        data[DIMENSIONE_MAX].a[0] = indiceData;
+        indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+      }
+      }
+    catch (boost::system::system_error& e)
+    {
+      std::cout << "Error: " << e.what() << std::endl;
+      return 1;
+    }
+    break;
+
+
+
+
+  default:
+    break;
+    }
 #else
   std::cout << "No valid method" << std::endl;
 #endif
 
   return 0;
 
-}
+  }
 
 
