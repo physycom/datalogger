@@ -800,7 +800,6 @@ int main(int narg, char ** args)
       int indiceData = 0;
       bool exit = false;
 
-      std::cout << "entro nel while" << std::flush << std::endl;
       while (exit == false)
       {
 #ifdef _WIN32
@@ -812,12 +811,10 @@ int main(int narg, char ** args)
           exit = true;
         }
 
-        std::cout << "ho fatto il check del tasto" << std::flush << std::endl;
 
         sst = sserial.readLine();
         //sst = serial.readStringUntil("\n");
 
-        std::cout << "ho letto una stringa" << std::flush << std::endl;
 
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
         nterm = int(strs.size());
