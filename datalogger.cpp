@@ -597,6 +597,8 @@ int main(int narg, char ** args)
 {
   short systeminfo = 0;
   std::cout << "Datalogger v" << MAJOR_VERSION << "." << MINOR_VERSION << std::endl;
+  std::cout << "new: general fixes and improvements\n" << std::endl;
+
   std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
   std::cout << "1. Infomobility" << std::endl;
   std::cout << "2. MagnetiMarelli" << std::endl;
@@ -608,57 +610,21 @@ int main(int narg, char ** args)
   std::ofstream logfile;
 
 
-#if defined(USE_BINARY_FILE)
-  // change next two lines with another input source when needed
-  std::cout << "Reading args[1]=" << args[1] << " as the input file" << std::endl;
-  std::ifstream inputfile;
-  inputfile.open(args[1], std::ios::binary | std::ios::in);
 
-  InfomobilityData dato;
-
-  while (1)
-  {
-    if (inputfile.eof()) break;
-    if (i >= DIMENSIONE_MAX) break;
-    dato.loadheader(inputfile);
-    dato.allocatePayload(dato.getPayloadSize());
-    dato.readPayload(inputfile);
-    dato.loadfooter(inputfile);
-    dato.checkfooter();
-    //dato.printheader();
-    //dato.printfooter();
-    //dato.deAllocatePayload();
-    if (dato.isGPSData())
-    {
-      dato.recordGPSDataFromPayload();
-      dato.printGPSData();
-    }
-    else
-    {
-      dato.recordACCDataFromPayload();
-      dato.printACCData();
-    }
-
-    i++;
-}
-#elif defined(USE_SERIAL_PORT)
   COMport portacom;
   portacom.set_portname_stdin();
-  portacom.set_baudrate_stdin();
-
-  /*
-  TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
-  serial.setTimeout(boost::posix_time::seconds(0));
-  */
-
-  SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
+  //portacom.set_baudrate_stdin();
+  portacom.set_baudrate(115200);
 
 
-  switch (systeminfo) {
 
-    /*
-  case 1: //Infomobility
+  if (systeminfo == 1) //Infomobility
+  {
     InfomobilityData dato;
+    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
+    serial.setTimeout(boost::posix_time::seconds(0));
+
+
 
 #if defined (USE_HOST_MEMORY)
     remove_host_memory("I_DATA");
@@ -701,19 +667,20 @@ int main(int narg, char ** args)
           dato.recordACCDataFromPayload();
           dato.printACCData();
         }
-
       }
     }
+
     catch (boost::system::system_error& e)
     {
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
-    break;
-    */
+  }
 
+  else if (systeminfo == 2) //MagnetiMarelli
+  {
+    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
 
-  case 2: // MagnetiMarelli
 #if defined (USE_HOST_MEMORY)
     remove_host_memory("M_DATA");
     data = (Data*)allocate_host_memory("M_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
@@ -778,12 +745,14 @@ int main(int narg, char ** args)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
-    break;
+  }
 
 
+  else if (systeminfo == 3) // Texa
+  {
 
+    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
 
-  case 3: // Texa
 #if defined (USE_HOST_MEMORY)
     remove_host_memory("T_DATA");
     data = (Data*)allocate_host_memory("T_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
@@ -832,10 +801,12 @@ int main(int narg, char ** args)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
-    break;
+  }
 
+  else if (systeminfo == 4) // ViaSat
+  {
+    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
 
-  case 4: // ViaSat
 #if defined (USE_HOST_MEMORY)
     remove_host_memory("V_DATA");
     data = (Data*)allocate_host_memory("V_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
@@ -899,26 +870,22 @@ int main(int narg, char ** args)
         data[DIMENSIONE_MAX].a[0] = indiceData;
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
       }
-      }
+    }
     catch (boost::system::system_error& e)
     {
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
-    break;
+  }
 
+  else
+  {
+    std::cout << "Error: unidentified object #" << systeminfo << std::endl;
+  }
 
-
-
-  default:
-    break;
-    }
-#else
-  std::cout << "No valid method" << std::endl;
-#endif
 
   return 0;
 
-  }
+}
 
 
