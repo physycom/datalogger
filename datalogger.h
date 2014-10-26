@@ -34,8 +34,9 @@
 #define MAJOR_VERSION 0
 #define MINOR_VERSION 6
 
-// #define USE_HOST_MEMORY
+//#define USE_HOST_MEMORY
 #define DEBUG
+#define NDATA 17
 
 
 
@@ -44,10 +45,12 @@
 #include <cstdlib>
 #include <string>
 #include <algorithm>
+#include <iomanip>
 #include <boost/asio.hpp>
 #include <boost/utility.hpp>
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 
 
@@ -105,7 +108,8 @@ void* get_host_allocated_memory(const char* name){
 
 
 struct Data{
-  double a[17];
+  double d[NDATA];
+  //int i[NDATA];
 };
 
 

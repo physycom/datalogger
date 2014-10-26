@@ -19,7 +19,7 @@
 
 #include "datalogger.h"
 
-//using namespace boost;
+#define WRITE_ON_STDOUT
 
 TimeoutSerial::TimeoutSerial(const std::string& devname, unsigned int baud_rate,
   boost::asio::serial_port_base::parity opt_parity,
@@ -234,18 +234,6 @@ void TimeoutSerial::readCompleted(const boost::system::error_code& error,
 }
 
 
-//class GPSData
-//{
-//private:
-//  unsigned short year;
-//  unsigned char month, day, hour, min, sec, fixType;
-//  long nano, lat, lon, gSpeed;
-//public:
-//  GPSData();
-//};
-
-
-
 class COMport
 {
 private:
@@ -304,6 +292,19 @@ int COMport::get_baudrate()
   return baudrate;
 }
 
+
+/*
+class GPSData
+{
+private:
+  unsigned short year;
+  unsigned char month, day, hour, min, sec, fixType;
+  long nano, lat, lon, gSpeed;
+public:
+  void setGPSData(double* data);
+  double* getGPSData();
+};
+*/
 
 
 class ACCData
@@ -392,7 +393,9 @@ public:
   void recordGPSDataFromPayload();
   void recordACCDataFromPayload();
   void printGPSData();
+  void saveGPSData(std::ofstream& outputfile);
   void printACCData();
+  void saveACCData(std::ofstream& outputfile);
 };
 
 
@@ -585,8 +588,20 @@ void InfomobilityData::printACCData()
 }
 
 
+void InfomobilityData::saveACCData(std::ofstream& outputfile)
+{
+  outputfile << "AccX=" << accdata.getAccX() << ", AccY=" << accdata.getAccY() << ", AccZ=" << accdata.getAccZ() << std::endl;
+}
+
+
 
 void InfomobilityData::printGPSData()
+{
+  return;
+}
+
+
+void InfomobilityData::saveGPSData(std::ofstream& outputfile)
 {
   return;
 }
@@ -612,8 +627,9 @@ int main(int narg, char ** args)
 
 
   COMport portacom;
-  portacom.set_portname_stdin();
+  //portacom.set_portname_stdin();
   //portacom.set_baudrate_stdin();
+  portacom.set_portname("COM4");
   portacom.set_baudrate(115200);
 
 
@@ -632,7 +648,7 @@ int main(int narg, char ** args)
 #else
     data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
 #endif
-    logfile.open("../output/i_serial.log", std::ofstream::out);
+    logfile.open("i_data.log", std::ofstream::out);
 
     try
     {
@@ -656,16 +672,26 @@ int main(int narg, char ** args)
         dato.checkfooter();
         //dato.printheader();
         //dato.printfooter();
+        dato.saveheader(logfile);
+        dato.savefooter(logfile);
         //dato.deAllocatePayload();
         if (dato.isGPSData())
         {
           dato.recordGPSDataFromPayload();
+#ifdef WRITE_ON_STDOUT
           dato.printGPSData();
+#else
+          dato.saveGPSData(logfile);
+#endif
         }
         else
         {
           dato.recordACCDataFromPayload();
+#ifdef WRITE_ON_STDOUT
           dato.printACCData();
+#else
+          dato.saveACCData(logfile);
+#endif
         }
       }
     }
@@ -687,7 +713,7 @@ int main(int narg, char ** args)
 #else
     data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
 #endif
-    logfile.open("../output/m_serial.log", std::ofstream::out);
+    logfile.open("m_data.log", std::ofstream::out);
 
     try {
       std::string sst;
@@ -720,23 +746,31 @@ int main(int narg, char ** args)
           replace(sst.begin(), sst.end(), ';', ' ');
           boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
           nterm = int(strs.size());
-          for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
-          for (int i = 0; i < nterm; i++) std::cout << dw.a[i] << " "; std::cout << std::endl;
+          for (int i = 0; i < nterm; i++) dw.d[i] = atof(strs[i].c_str());
+#ifdef WRITE_ON_STDOUT
+          for (int i = 0; i < nterm; i++) std::cout << dw.d[i] << " "; std::cout << std::endl;
+#else
+          for (int i = 0; i < nterm; i++) logfile << dw.d[i] << " "; logfile << std::endl;
+#endif
         }
         else
         {
           std::replace(sst.begin(), sst.end(), ';', ' ');
           boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
           nterm = int(strs.size());
-          for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
-          for (int i = 0; i < nterm; i++) dw.a[i] /= 256.;
-          for (int i = 0; i < nterm; i++) std::cout << dw.a[i] << " "; std::cout << std::endl;
+          for (int i = 0; i < nterm; i++) dw.d[i] = atof(strs[i].c_str());
+          for (int i = 0; i < nterm; i++) dw.d[i] /= 256.;
+#ifdef WRITE_ON_STDOUT
+          for (int i = 0; i < nterm; i++) std::cout << dw.d[i] << " "; std::cout << std::endl;
+#else
+          for (int i = 0; i < nterm; i++) logfile << dw.d[i] << " "; logfile << std::endl;
+#endif
         }
         break;
 
 
         data[indiceData] = dw;
-        data[DIMENSIONE_MAX].a[0] = indiceData;
+        data[DIMENSIONE_MAX].d[0] = indiceData;
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
       }
     }
@@ -759,7 +793,7 @@ int main(int narg, char ** args)
 #else
     data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
 #endif
-    logfile.open("../output/t_serial.log", std::ofstream::out);
+    logfile.open("t_data.log", std::ofstream::out);
 
     try {
       std::string sst;
@@ -787,12 +821,18 @@ int main(int narg, char ** args)
 
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
         nterm = int(strs.size());
-        for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
 
-        for (int i = 0; i < nterm; i++) std::cout << dw.a[i] << " "; std::cout << std::endl;
+        for (int i = 0; i < nterm; i++) dw.d[i] = atof(strs[i].c_str());
+
+#ifdef WRITE_ON_STDOUT
+        //for (int i = 0; i < nterm; i++) std::cout << boost::lexical_cast<std::string>(dw.d[i]) << " "; std::cout << std::endl;
+        for (int i = 0; i < nterm; i++) std::cout << dw.d[i] << " "; std::cout << std::endl;
+#else
+        for (int i = 0; i < nterm; i++) logfile << dw.d[i] << " "; logfile << std::endl;
+#endif
 
         data[indiceData] = dw;
-        data[DIMENSIONE_MAX].a[0] = indiceData;
+        data[DIMENSIONE_MAX].d[0] = indiceData;
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
       }
     }
@@ -813,7 +853,7 @@ int main(int narg, char ** args)
 #else
     data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
 #endif
-    logfile.open("../output/v_serial.log", std::ofstream::out);
+    logfile.open("v_data.log", std::ofstream::out);
 
     try {
       std::string sst;
@@ -845,10 +885,13 @@ int main(int narg, char ** args)
           boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
           nterm = int(strs.size());
 
-          for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
+          for (int i = 0; i < nterm; i++) dw.d[i] = atof(strs[i].c_str());
 
-          for (int i = 0; i < nterm; i++) std::cout << dw.a[i] << " "; std::cout << std::endl;
-
+#ifdef WRITE_ON_STDOUT
+          for (int i = 0; i < nterm; i++) std::cout << dw.d[i] << " "; std::cout << std::endl;
+#else
+          for (int i = 0; i < nterm; i++) logfile << dw.d[i] << " "; logfile << std::endl;
+#endif
         }
         else
         {
@@ -860,14 +903,18 @@ int main(int narg, char ** args)
           boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
           nterm = int(strs.size());
 
-          for (int i = 0; i < nterm; i++) dw.a[i] = atof(strs[i].c_str());
-          for (int i = 0; i < 3; i++) dw.a[i] /= 1000.;
+          for (int i = 0; i < nterm; i++) dw.d[i] = atof(strs[i].c_str());
+          for (int i = 0; i < 3; i++) dw.d[i] /= 1000.;
 
-          for (int i = 0; i < nterm; i++) std::cout << dw.a[i] << " "; std::cout << std::endl;
+#ifdef WRITE_ON_STDOUT
+          for (int i = 0; i < nterm; i++) std::cout << dw.d[i] << " "; std::cout << std::endl;
+#else
+          for (int i = 0; i < nterm; i++) logfile << dw.d[i] << " "; logfile << std::endl;
+#endif
         }
 
         data[indiceData] = dw;
-        data[DIMENSIONE_MAX].a[0] = indiceData;
+        data[DIMENSIONE_MAX].d[0] = indiceData;
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
       }
     }
