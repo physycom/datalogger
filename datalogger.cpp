@@ -297,12 +297,12 @@ int COMport::get_baudrate()
 class GPSData
 {
 private:
-  unsigned short year;
-  unsigned char month, day, hour, min, sec, fixType;
-  long nano, lat, lon, gSpeed;
+unsigned short year;
+unsigned char month, day, hour, min, sec, fixType;
+long nano, lat, lon, gSpeed;
 public:
-  void setGPSData(double* data);
-  double* getGPSData();
+void setGPSData(double* data);
+double* getGPSData();
 };
 */
 
