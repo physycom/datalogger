@@ -608,31 +608,58 @@ void InfomobilityData::saveGPSData(std::ofstream& outputfile)
 
 
 
-int main(int narg, char ** args)
+int main(int argc, char ** argv)
 {
   short systeminfo = 0;
   std::cout << "Datalogger v" << MAJOR_VERSION << "." << MINOR_VERSION << std::endl;
+  std::cout << "Usage: %s -p [serial_port] -b [baudrate]" << std::endl;
+  std::cout << "\t- [serial_port] serial port number COMx" << std::endl;
+  std::cout << "\t- [baudrate] " << std::endl;
+  std::cout << "\t- default SERIAL_PORT:COM4 \t BAUDRATE:115200" << std::endl;
   std::cout << "new: general fixes and improvements\n" << std::endl;
-
   std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
   std::cout << "1. Infomobility" << std::endl;
   std::cout << "2. MagnetiMarelli" << std::endl;
   std::cout << "3. Texa" << std::endl;
   std::cout << "4. ViaSat" << std::endl;
+  std::cout << "5. MetaSystem" << std::endl;
   std::cin >> systeminfo;
 
+  std::string serial_port = "COM4"; 
+  int baudrate = 115200;
+  if (argc > 1){ /* Parse arguments, if there are arguments supplied */
+    for (int i = 1; i<argc; i++){
+      if ((argv[i][0] == '-') || (argv[i][0] == '/')){       // switches or options...
+        switch (tolower(argv[i][1])){                     // Change to lower...if any
+        case 'p':   // if -i or /i
+          serial_port = argv[++i];
+          break;
+        case 'b':   // if -f or /f
+          baudrate = atoi(argv[++i]);
+          break;
+        default:    // no match...
+          std::cout << argv[i] << " not recognized" << std::endl;
+          break;
+        }
+      }
+      else {
+        std::cout << argv[i] << " not recognized" << std::endl;
+        break;
+      }
+    }
+  }
+  else { std::cout << "Using default parameters" << std::endl; }
+
+  std::cout << "Connecting to box type " << systeminfo << " on port " << serial_port << " with baudrate " << baudrate << std::endl;
+  
   Data *data;
   std::ofstream logfile;
-
-
 
   COMport portacom;
   //portacom.set_portname_stdin();
   //portacom.set_baudrate_stdin();
-  portacom.set_portname("COM4");
-  portacom.set_baudrate(115200);
-
-
+  portacom.set_portname(serial_port);
+  portacom.set_baudrate(baudrate);
 
   if (systeminfo == 1) //Infomobility
   {
@@ -925,6 +952,11 @@ int main(int narg, char ** args)
     }
   }
 
+  else if (systeminfo == 5) // MetaSystem
+  {
+    std::cout << "Not yet implemented!" << std::endl;
+  }
+
   else
   {
     std::cout << "Error: unidentified object #" << systeminfo << std::endl;
@@ -932,7 +964,6 @@ int main(int narg, char ** args)
 
 
   return 0;
-
 }
 
 
