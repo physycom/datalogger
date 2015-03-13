@@ -16,6 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
+#define MSData float
 
 #include "datalogger.h"
 
@@ -183,7 +184,6 @@ std::string TimeoutSerial::readStringUntil(const std::string& delim)
   }
 }
 
-
 void TimeoutSerial::performReadSetup(const ReadSetupParameters& param)
 {
   if (param.fixedSize)
@@ -233,7 +233,6 @@ void TimeoutSerial::readCompleted(const boost::system::error_code& error,
   result = resultError;
 }
 
-
 class COMport
 {
 private:
@@ -248,14 +247,10 @@ public:
   int get_baudrate();
 };
 
-
-
 void COMport::set_portname(std::string port)
 {
   portname = port;
 }
-
-
 
 void COMport::set_portname_stdin()
 {
@@ -263,21 +258,15 @@ void COMport::set_portname_stdin()
   std::cin >> portname;
 }
 
-
-
 std::string COMport::get_portname()
 {
   return portname;
 }
 
-
-
 void COMport::set_baudrate(int baud)
 {
   baudrate = baud;
 }
-
-
 
 void COMport::set_baudrate_stdin()
 {
@@ -285,13 +274,10 @@ void COMport::set_baudrate_stdin()
   std::cin >> baudrate;
 }
 
-
-
 int COMport::get_baudrate()
 {
   return baudrate;
 }
-
 
 /*
 class GPSData
@@ -306,7 +292,6 @@ double* getGPSData();
 };
 */
 
-
 class ACCData
 {
 private:
@@ -320,49 +305,85 @@ public:
   short getAccZ();
 };
 
-
-
 void ACCData::setAccX(short accx)
 {
   AccX = accx;
 }
-
-
 
 void ACCData::setAccY(short accy)
 {
   AccY = accy;
 }
 
-
-
 void ACCData::setAccZ(short accz)
 {
   AccZ = accz;
 }
-
-
 
 short ACCData::getAccX()
 {
   return AccX;
 }
 
-
-
 short ACCData::getAccY()
 {
   return AccY;
 }
-
-
 
 short ACCData::getAccZ()
 {
   return AccZ;
 }
 
+class MetasystemData
+{
+private:
+  char align;
+  std::vector<std::vector<MSData>> acc;
+public:
+  void readData(std::ifstream& inputfile);
+  void readDataS(TimeoutSerial& serial);
+  void printData();
+  void saveData(std::ofstream& outputfile);
+};
 
+void MetasystemData::readData(std::ifstream& inputfile)
+{
+  std::vector<MSData> temp(3);
+  align = 0;
+  while (align != 0xFF) inputfile.read(&align, sizeof(align));
+  for (int i = 0; i < 400; i++) {
+    inputfile.read((char*)&temp, 3 * sizeof(float));
+    acc.push_back(temp);
+  }
+}
+
+void MetasystemData::readDataS(TimeoutSerial& serial)
+{
+  std::vector<MSData> temp(3);
+  align = 0;
+  while (align != 0xFF) serial.read(&align, sizeof(align));
+  for (int i = 0; i < 400; i++) {
+    serial.read((char*)&temp, 3 * sizeof(float));
+    acc.push_back(temp);
+  }
+}
+
+void MetasystemData::printData()
+{
+  for (int i = 0; i < 400; i++) {
+    std::cout << acc[i][0] << ", " << acc[i][1] << ", " << acc[i][2] << std::endl;
+  }
+  acc.clear();
+}
+
+void MetasystemData::saveData(std::ofstream& outputfile)
+{
+  for (int i = 0; i < 400; i++) {
+    outputfile << acc[i][0] << ", " << acc[i][1] << ", " << acc[i][2] << std::endl;
+  }
+  acc.clear();
+}
 
 class InfomobilityData
 {
@@ -398,8 +419,6 @@ public:
   void saveACCData(std::ofstream& outputfile);
 };
 
-
-
 void InfomobilityData::saveheader(std::ofstream& outputfile)
 {
   outputfile.write(&h1, sizeof(h1));
@@ -409,15 +428,11 @@ void InfomobilityData::saveheader(std::ofstream& outputfile)
   outputfile.write((char*)&hlength, sizeof(hlength));
 }
 
-
-
 void InfomobilityData::printheader()
 {
   std::cout << "h1=" << h1 << "; h2=" << h2 << "hclass=" << hclass << "; hid=" << hid << std::endl;
   std::cout << "Payload length: " << hlength << std::endl;
 }
-
-
 
 void InfomobilityData::loadheader(std::ifstream& inputfile)
 {
@@ -444,8 +459,6 @@ void InfomobilityData::loadheader(std::ifstream& inputfile)
   }
 }
 
-
-
 void InfomobilityData::loadheaderS(TimeoutSerial& serial)
 {
   h1 = 0, h2 = 0;
@@ -471,14 +484,10 @@ void InfomobilityData::loadheaderS(TimeoutSerial& serial)
   }
 }
 
-
-
 int InfomobilityData::getPayloadSize()
 {
   return (int)hlength;
 }
-
-
 
 void InfomobilityData::savefooter(std::ofstream& outputfile)
 {
@@ -486,14 +495,10 @@ void InfomobilityData::savefooter(std::ofstream& outputfile)
   outputfile.write(&f2, sizeof(f2));
 }
 
-
-
 void InfomobilityData::printfooter()
 {
   std::cout << "f1=" << f1 << "; f2=" << f2 << std::endl;
 }
-
-
 
 void InfomobilityData::loadfooter(std::ifstream& inputfile)
 {
@@ -501,43 +506,31 @@ void InfomobilityData::loadfooter(std::ifstream& inputfile)
   inputfile.read(&f2, sizeof(f2));
 }
 
-
-
 void InfomobilityData::loadfooterS(TimeoutSerial& serial)
 {
   serial.read(&f1, sizeof(f1));
   serial.read(&f2, sizeof(f2));
 }
 
-
-
 void InfomobilityData::allocatePayload(int sizePayload)
 {
   payload = new char[sizePayload];
 }
-
-
 
 void InfomobilityData::deAllocatePayload()
 {
   delete[] payload;
 }
 
-
-
 void InfomobilityData::readPayload(std::ifstream& inputfile)
 {
   inputfile.read(payload, sizeof(payload));
 }
 
-
-
 void InfomobilityData::readPayloadS(TimeoutSerial& serial)
 {
   serial.read(payload, sizeof(payload));
 }
-
-
 
 bool InfomobilityData::checkfooter()
 {
@@ -557,14 +550,10 @@ bool InfomobilityData::checkfooter()
   return ((ck_a == f1) && (ck_b == f2));
 }
 
-
-
 bool InfomobilityData::isGPSData()
 {
   return isGPS;
 }
-
-
 
 void InfomobilityData::recordACCDataFromPayload()
 {
@@ -573,40 +562,30 @@ void InfomobilityData::recordACCDataFromPayload()
   accdata.setAccZ(*(short*)(payload + 2 * sizeof(short)));
 }
 
-
-
 void InfomobilityData::recordGPSDataFromPayload()
 {
   return; // will store here proper gpsdata object using payload
 }
-
-
 
 void InfomobilityData::printACCData()
 {
   std::cout << "AccX=" << accdata.getAccX() << ", AccY=" << accdata.getAccY() << ", AccZ=" << accdata.getAccZ() << std::endl;
 }
 
-
 void InfomobilityData::saveACCData(std::ofstream& outputfile)
 {
   outputfile << "AccX=" << accdata.getAccX() << ", AccY=" << accdata.getAccY() << ", AccZ=" << accdata.getAccZ() << std::endl;
 }
-
-
 
 void InfomobilityData::printGPSData()
 {
   return;
 }
 
-
 void InfomobilityData::saveGPSData(std::ofstream& outputfile)
 {
   return;
 }
-
-
 
 int main(int argc, char ** argv)
 {
@@ -625,10 +604,10 @@ int main(int argc, char ** argv)
   std::cout << "5. MetaSystem" << std::endl;
   std::cin >> systeminfo;
 
-  std::string serial_port = "COM4"; 
+  std::string serial_port = "COM4";
   int baudrate = 115200;
   if (argc > 1){ /* Parse arguments, if there are arguments supplied */
-    for (int i = 1; i<argc; i++){
+    for (int i = 1; i < argc; i++){
       if ((argv[i][0] == '-') || (argv[i][0] == '/')){       // switches or options...
         switch (tolower(argv[i][1])){                     // Change to lower...if any
         case 'p':   // if -i or /i
@@ -651,7 +630,7 @@ int main(int argc, char ** argv)
   else { std::cout << "Using default parameters" << std::endl; }
 
   std::cout << "Connecting to box type " << systeminfo << " on port " << serial_port << " with baudrate " << baudrate << std::endl;
-  
+
   Data *data;
   std::ofstream logfile;
 
@@ -735,12 +714,12 @@ int main(int argc, char ** argv)
     SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
 
 #if defined (USE_HOST_MEMORY)
-    remove_host_memory("M_DATA");
-    data = (Data*)allocate_host_memory("M_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
+    remove_host_memory("MM_DATA");
+    data = (Data*)allocate_host_memory("MM_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
 #else
     data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
 #endif
-    logfile.open("m_data.log", std::ofstream::out);
+    logfile.open("mm_data.log", std::ofstream::out);
 
     try {
       std::string sst;
@@ -954,8 +933,49 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 5) // MetaSystem
   {
-    std::cout << "Not yet implemented!" << std::endl;
+    MetasystemData dato;
+    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
+    serial.setTimeout(boost::posix_time::seconds(0));
+
+#if defined (USE_HOST_MEMORY)
+    remove_host_memory("MS_DATA");
+    data = (Data*)allocate_host_memory("MS_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
+#else
+    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
+#endif
+    logfile.open("ms_data.log", std::ofstream::out);
+
+    try
+    {
+      bool exit = false;
+
+      while (exit == false)
+      {
+#ifdef _WIN32
+        if (GetAsyncKeyState(VK_ESCAPE))
+#else
+        if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
+#endif
+        {
+          exit = true;
+        }
+
+        dato.readDataS(serial);
+#ifdef WRITE_ON_STDOUT
+        dato.printData();
+#else
+        dato.saveData(logfile);
+#endif
+      }
+    }
+
+    catch (boost::system::system_error& e)
+    {
+      std::cout << "Error: " << e.what() << std::endl;
+      return 1;
+    }
   }
+
 
   else
   {
@@ -965,5 +985,4 @@ int main(int argc, char ** argv)
 
   return 0;
 }
-
 

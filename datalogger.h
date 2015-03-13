@@ -17,10 +17,6 @@
 ************************************************************************/
 
 
-
-
-
-
 #define USE_SERIAL_PORT
 //#define USE_BINARY_FILE
 
@@ -39,7 +35,6 @@
 #define NDATA 17
 
 
-
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -51,7 +46,6 @@
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-
 
 
 #if defined(USE_HOST_MEMORY)
@@ -106,12 +100,10 @@ void* get_host_allocated_memory(const char* name){
 }
 #endif
 
-
 struct Data{
   double d[NDATA];
   //int i[NDATA];
 };
-
 
 void swap_endian_s(short* in_s, int n)
 {
@@ -128,7 +120,6 @@ void swap_endian_s(short* in_s, int n)
     in_s[i] = x.smio;
   }
 }
-
 
 void swap_endian_i(int* in_i, int n)
 {
@@ -147,7 +138,6 @@ void swap_endian_i(int* in_i, int n)
     in_i[i] = x.imio;
   }
 }
-
 
 void swap_endian_f(float* in_f, int n)
 {
@@ -223,7 +213,6 @@ private:
   boost::asio::io_service io;
   boost::asio::serial_port serial;
 };
-
 
 class timeout_exception : public std::runtime_error
 {
@@ -436,5 +425,4 @@ private:
   size_t bytesTransferred; ///< Used by async read callback
   ReadSetupParameters setupParameters; ///< Global because used in the OSX fix
 };
-
 
