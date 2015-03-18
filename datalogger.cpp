@@ -16,7 +16,6 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
-#define MSData float
 
 #include "datalogger.h"
 
@@ -338,8 +337,8 @@ short ACCData::getAccZ()
 class MetasystemData
 {
 private:
-  char align;
-  std::vector<std::vector<MSData>> acc;
+  const unsigned char align = (unsigned char) '0xFF';
+  std::vector<std::vector<short>> acc;
 public:
   void readData(std::ifstream& inputfile);
   void readDataS(TimeoutSerial& serial);
@@ -349,22 +348,34 @@ public:
 
 void MetasystemData::readData(std::ifstream& inputfile)
 {
-  std::vector<MSData> temp(3);
-  align = 0;
-  while (align != 0xFF) inputfile.read(&align, sizeof(align));
+  std::vector<short> temp(3);
+  unsigned char buffer = 0;
+  while (buffer != align) {
+    inputfile.read((char*)&buffer, sizeof(align));
+    //printf("%02x", buffer);
+  }
   for (int i = 0; i < 400; i++) {
-    inputfile.read((char*)&temp, 3 * sizeof(float));
+    inputfile.read((char*)&(temp[0]), sizeof(temp[0]));
+    inputfile.read((char*)&(temp[1]), sizeof(temp[1]));
+    inputfile.read((char*)&(temp[2]), sizeof(temp[2]));
+    inputfile.read((char*)&align, sizeof(align));
     acc.push_back(temp);
   }
 }
 
 void MetasystemData::readDataS(TimeoutSerial& serial)
 {
-  std::vector<MSData> temp(3);
-  align = 0;
-  while (align != 0xFF) serial.read(&align, sizeof(align));
+  std::vector<short> temp(3);
+  unsigned char buffer = 0;
+  while (buffer != align) {
+    serial.read((char*)&buffer, sizeof(align));
+    //printf("%02x", buffer);
+  }
   for (int i = 0; i < 400; i++) {
-    serial.read((char*)&temp, 3 * sizeof(float));
+    serial.read((char*)&(temp[0]), sizeof(temp[0]));
+    serial.read((char*)&(temp[1]), sizeof(temp[1]));
+    serial.read((char*)&(temp[2]), sizeof(temp[2]));
+    serial.read((char*)&align, sizeof(align));
     acc.push_back(temp);
   }
 }
