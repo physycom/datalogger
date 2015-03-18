@@ -337,8 +337,8 @@ short ACCData::getAccZ()
 class MetasystemData
 {
 private:
-  const unsigned char align = (unsigned char) '0xFF';
-  std::vector<std::vector<short>> acc;
+  const unsigned char align = (unsigned char) 0xFF;
+  std::vector<std::vector<int16_t>> acc;
 public:
   void readData(std::ifstream& inputfile);
   void readDataS(TimeoutSerial& serial);
@@ -348,7 +348,7 @@ public:
 
 void MetasystemData::readData(std::ifstream& inputfile)
 {
-  std::vector<short> temp(3);
+  std::vector<int16_t> temp(3);
   unsigned char buffer = 0;
   while (buffer != align) {
     inputfile.read((char*)&buffer, sizeof(align));
@@ -365,12 +365,22 @@ void MetasystemData::readData(std::ifstream& inputfile)
 
 void MetasystemData::readDataS(TimeoutSerial& serial)
 {
-  std::vector<short> temp(3);
+  std::vector<int16_t> temp(3);
   unsigned char buffer = 0;
   while (buffer != align) {
     serial.read((char*)&buffer, sizeof(align));
-    //printf("%02x", buffer);
+//    printf("%02x ", buffer);
+//    if (buffer == align) printf("\n");
   }
+  int i = 0;
+  //while (true) {
+  //  serial.read((char*)&buffer, sizeof(align));
+  //  printf("%02x ", buffer); 
+  //  i++;
+  //  if (i % 7 == 0){
+  //    printf("\n"); i = 0;
+  //  }
+  //}
   for (int i = 0; i < 400; i++) {
     serial.read((char*)&(temp[0]), sizeof(temp[0]));
     serial.read((char*)&(temp[1]), sizeof(temp[1]));
@@ -382,7 +392,7 @@ void MetasystemData::readDataS(TimeoutSerial& serial)
 
 void MetasystemData::printData()
 {
-  for (int i = 0; i < 400; i++) {
+  for (size_t i = 0; i < acc.size(); i++) {
     std::cout << acc[i][0] << ", " << acc[i][1] << ", " << acc[i][2] << std::endl;
   }
   acc.clear();
@@ -390,7 +400,7 @@ void MetasystemData::printData()
 
 void MetasystemData::saveData(std::ofstream& outputfile)
 {
-  for (int i = 0; i < 400; i++) {
+  for (size_t i = 0; i < acc.size(); i++) {
     outputfile << acc[i][0] << ", " << acc[i][1] << ", " << acc[i][2] << std::endl;
   }
   acc.clear();
