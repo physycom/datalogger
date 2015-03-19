@@ -31,11 +31,13 @@ int main(int argc, char ** argv)
   std::cout << "\t- [serial_port] serial port number COMx" << std::endl;
   std::cout << "\t- [baudrate] " << std::endl;
   std::cout << "\t- [box_type] " << std::endl;
-  std::cout << "\t- default SERIAL_PORT:COM4 \t BAUDRATE:115200" << std::endl;
   std::cout << "new: general fixes and improvements\n" << std::endl;
 
-  std::string serial_port = "COM4";
-  int baudrate = 115200;
+  std::string serial_port = "";
+  int baudrate = -1;
+  bool serial_port_found = false;
+  bool baudrate_found = false;
+
   if (argc > 1){ /* Parse arguments, if there are arguments supplied */
     for (int i = 1; i < argc; i++){
       if ((argv[i][0] == '-') || (argv[i][0] == '/')){       // switches or options...
@@ -67,6 +69,57 @@ int main(int argc, char ** argv)
     std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
     for (size_t i = 0; i < box_types.size(); i++) std::cout << i + 1 << ". " << box_types[i] << std::endl;
     std::cin >> systeminfo;
+    if (std::cin.fail()) {
+      std::cin.clear();
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+  }
+
+
+  std::vector<int> baudrates({300, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400});
+  for (auto br : baudrates)
+  {
+    baudrate_found = (br == baudrate);
+    if (baudrate_found) break;
+  }
+  while (!baudrate_found){
+    std::cout << "Baud rate: " << std::endl;
+    std::cin >> baudrate;
+    if (std::cin.fail()) {
+      std::cin.clear();
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      continue;
+    }
+    for (auto br : baudrates)
+    {
+      baudrate_found = (br == baudrate);
+      if (baudrate_found) break;
+    }
+  }
+
+
+  std::vector<std::string> serial_port_names;
+  for (int i = 0; i < 256; i++) {
+#ifdef _WIN32
+    std::string serial_port_name = std::string("COM") + std::to_string(i);
+#else
+    std::string serial_port_name = std::string("/dev/ttyUSB") + std::to_string(i);
+#endif
+    serial_port_names.push_back(serial_port_name);
+  }
+  for (auto port : serial_port_names)
+  {
+    serial_port_found = (port == serial_port);
+    if (serial_port_found) break;
+  }
+  while (!serial_port_found){
+    std::cout << "Serial port name: " << std::endl;
+    std::cin >> serial_port;
+    for (auto port : serial_port_names)
+    {
+      serial_port_found = (port == serial_port);
+      if (serial_port_found) break;
+    }
   }
 
   std::cout << "Connecting to box TYPE " << box_types[systeminfo-1] << " on PORT " << serial_port << " with BAUDRATE " << baudrate << std::endl;
