@@ -133,9 +133,9 @@ void MetasystemData::readDataS(TimeoutSerial& serial)
 
     for (size_t j = 0; j < temp.size(); j++){
       serial.read((char*)&(temp[j]), sizeof(temp[j]));
-//      printf("%d ", temp[j]);
-//      swap_endian_s(&(temp[j]), sizeof(temp[j]));
-//      printf("%d - ", temp[j]);
+      printf("%8d ", temp[j]);
+      swap_endian_s(&(temp[j]), sizeof(temp[j]));
+      printf("%8d | ", temp[j]);
     }
     printf("\n");
     serial.read((char*)&align, sizeof(align));
