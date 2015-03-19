@@ -16,6 +16,11 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
+struct Data{
+  double d[NDATA];
+  //int i[NDATA];
+};
+
 /*
 class GPSData
 {

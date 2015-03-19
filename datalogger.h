@@ -99,8 +99,3 @@ void* get_host_allocated_memory(const char* name){
   return static_cast<void*>(region->get_address());
 }
 #endif
-
-struct Data{
-  double d[NDATA];
-  //int i[NDATA];
-};

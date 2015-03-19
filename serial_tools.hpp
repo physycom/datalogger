@@ -16,8 +16,6 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
-#define WRITE_ON_STDOUT
-
 class SimpleSerial
 {
 public:
