@@ -25,6 +25,21 @@
 
 #define WRITE_ON_STDOUT
 
+MetasystemData dato;
+
+void readDataS_function(TimeoutSerial serial, MetasystemData &dato){
+  dato.readDataS(serial);
+};
+
+void printData_function(MetasystemData &dato){
+  dato.printData();
+};
+
+
+void (MetasystemData::*punta_readDataS) (TimeoutSerial &serial) = &MetasystemData::readDataS;
+void (MetasystemData::*punta_printData) () = &MetasystemData::printData;
+
+
 int main(int argc, char ** argv)
 {
   short systeminfo = 0;
@@ -428,7 +443,6 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 5) // MetaSystem
   {
-    MetasystemData dato;
     TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
@@ -455,15 +469,26 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        boost::thread read_thread(dato.readDataS, serial);
+
+
+        boost::thread read_thread(punta_readDataS, serial);
 
 #ifdef WRITE_ON_STDOUT
-        boost::thread write_thread(dato.printData);
+        boost::thread write_thread(punta_printData);
 #else
-        boost::thread write_thread(dato.saveData,logfile);
+        boost::thread write_thread(dato.saveData, logfile);
 #endif
 
 
+//        boost::thread read_thread(readDataS_function, serial, dato);
+//
+//#ifdef WRITE_ON_STDOUT
+//        boost::thread write_thread(printData_function, dato);
+//#else
+//        boost::thread write_thread(dato.saveData, logfile);
+//#endif
+
+         
         //        dato.readDataS(serial);  // questo è thread1
         //#ifdef WRITE_ON_STDOUT
         //        dato.printData();        // questo è thread2
