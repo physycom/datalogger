@@ -21,6 +21,8 @@
 #include "swap_tools.hpp"
 #include "data_tools.hpp"
 
+#include <boost/thread.hpp>
+
 #define WRITE_ON_STDOUT
 
 int main(int argc, char ** argv)
@@ -64,7 +66,7 @@ int main(int argc, char ** argv)
   }
   else { std::cout << "Using default parameters" << std::endl; }
 
-  std::vector<std::string> box_types({"Infomobility","MagnetiMarelli","Texa","ViaSat","MetaSystem"});
+  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem" });
   while (systeminfo < 1 || systeminfo > 5){
     std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
     for (size_t i = 0; i < box_types.size(); i++) std::cout << i + 1 << ". " << box_types[i] << std::endl;
@@ -76,7 +78,7 @@ int main(int argc, char ** argv)
   }
 
 
-  std::vector<int> baudrates({300, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400});
+  std::vector<int> baudrates({ 300, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400 });
   for (auto br : baudrates)
   {
     baudrate_found = (br == baudrate);
@@ -122,7 +124,7 @@ int main(int argc, char ** argv)
     }
   }
 
-  std::cout << "Connecting to box TYPE " << box_types[systeminfo-1] << " on PORT " << serial_port << " with BAUDRATE " << baudrate << std::endl;
+  std::cout << "Connecting to box TYPE " << box_types[systeminfo - 1] << " on PORT " << serial_port << " with BAUDRATE " << baudrate << std::endl;
 
   Data *data;
   std::ofstream logfile;
@@ -453,12 +455,21 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataS(serial);
+        boost::thread read_thread(dato.readDataS, serial);
+
 #ifdef WRITE_ON_STDOUT
-        dato.printData();
+        boost::thread write_thread(dato.printData);
 #else
-        dato.saveData(logfile);
+        boost::thread write_thread(dato.saveData,logfile);
 #endif
+
+
+        //        dato.readDataS(serial);  // questo è thread1
+        //#ifdef WRITE_ON_STDOUT
+        //        dato.printData();        // questo è thread2
+        //#else
+        //        dato.saveData(logfile);
+        //#endif
       }
     }
 

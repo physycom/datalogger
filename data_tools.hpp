@@ -112,10 +112,10 @@ void MetasystemData::readDataS(TimeoutSerial& serial)
   unsigned char buffer = 0;
   while (buffer != align) {
     serial.read((char*)&buffer, sizeof(align));
-//    printf("%02x ", buffer);
-//    if (buffer == align) printf("\n");
+    printf("%02x ", buffer);
+    if (buffer == align) printf("\n");
   }
-  int i = 0;
+  //int i = 0;
   //while (true) {
   //  serial.read((char*)&buffer, sizeof(align));
   //  printf("%02x ", buffer); 
@@ -128,16 +128,6 @@ void MetasystemData::readDataS(TimeoutSerial& serial)
     serial.read((char*)&(temp[0]), sizeof(temp[0]));
     serial.read((char*)&(temp[1]), sizeof(temp[1]));
     serial.read((char*)&(temp[2]), sizeof(temp[2]));
-    temp[0] |= (0u << 14);
-    temp[1] |= (0u << 14);
-
-    for (size_t j = 0; j < temp.size(); j++){
-      serial.read((char*)&(temp[j]), sizeof(temp[j]));
-      printf("%8d ", temp[j]);
-      swap_endian_s(&(temp[j]), sizeof(temp[j]));
-      printf("%8d | ", temp[j]);
-    }
-    printf("\n");
     serial.read((char*)&align, sizeof(align));
     acc.push_back(temp);
   }
@@ -146,7 +136,10 @@ void MetasystemData::readDataS(TimeoutSerial& serial)
 void MetasystemData::printData()
 {
   for (size_t i = 0; i < acc.size(); i++) {
-//    std::cout << acc[i][0] << ", " << acc[i][1] << ", " << acc[i][2] << std::endl;
+    for (size_t j = 0; j < acc[0].size(); j++){
+      printf("%8d ", acc[i][j]);
+    }
+    printf("\n");
   }
   acc.clear();
 }
