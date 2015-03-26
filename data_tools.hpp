@@ -1,4 +1,4 @@
-// Copyright 2014 Stefano Sinigardi
+// Copyright 2014, 2015 Stefano Sinigardi, Alessandro Fabbri
 // for any question, please mail stefano.sinigardi@gmail.com
 
 /************************************************************************
@@ -21,18 +21,95 @@ struct Data{
   //int i[NDATA];
 };
 
-/*
+
 class GPSData
 {
 private:
-unsigned short year;
-unsigned char month, day, hour, min, sec, fixType;
-long nano, lat, lon, gSpeed;
+  unsigned char align_A;
+  unsigned char align_B;
+  unsigned char ubx_class;
+  unsigned char ubx_id;
+  int16_t ubx_length;
+  std::vector<char> payload;
+  unsigned char ubx_chk_A;
+  unsigned char ubx_chk_B;
+
 public:
-void setGPSData(double* data);
-double* getGPSData();
+  GPSData();
+  void readData(std::ifstream& inputfile);
+  void readDataS(TimeoutSerial& serial);
+  void printData();
+  void saveData(std::ofstream& outputfile);
 };
-*/
+
+
+GPSData::GPSData() {
+  align_A = (unsigned char)0xB5;
+  align_B = (unsigned char)0x62;
+}
+
+
+void GPSData::readData(std::ifstream& inputfile)
+{
+  unsigned char buffer[2] = { 0, 0 };
+  while (buffer[0] != align_A && buffer[1] != align_B) {
+    inputfile.read((char*)&buffer, sizeof(align_A) + sizeof(align_B));
+    //printf("%02x", buffer);
+  }
+  inputfile.read((char*)&ubx_class, sizeof(ubx_class));
+  inputfile.read((char*)&ubx_id, sizeof(ubx_id));
+  inputfile.read((char*)&ubx_length, sizeof(ubx_length));
+
+  char * temp = new char[ubx_length];
+  payload.resize(ubx_length);
+  inputfile.read((char*)&temp, ubx_length*sizeof(char));
+  size_t ii = 0;
+  for (auto i : payload) i = temp[ii++];
+  delete[] temp;
+
+  inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+  inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+}
+
+
+void GPSData::readDataS(TimeoutSerial& serial)
+{
+  unsigned char buffer[2] = { 0, 0 };
+  while (buffer[0] != align_A && buffer[1] != align_B) {
+    serial.read((char*)&buffer, sizeof(align_A) + sizeof(align_B));
+    //printf("%02x", buffer);
+  }
+  serial.read((char*)&ubx_class, sizeof(ubx_class));
+  serial.read((char*)&ubx_id, sizeof(ubx_id));
+  serial.read((char*)&ubx_length, sizeof(ubx_length));
+
+  char * temp = new char[ubx_length];
+  payload.resize(ubx_length);
+  serial.read((char*)&temp, ubx_length*sizeof(char));
+  size_t ii = 0;
+  for (auto i : payload) i = temp[ii++];
+  delete[] temp;
+
+  serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+  serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+}
+
+
+void GPSData::printData()
+{
+  printf("%02x:%02x - %02x:%02x - PL: %s - %02x:%02x\n", align_A, align_B, ubx_class, ubx_id, payload, ubx_chk_A, ubx_chk_B);
+}
+
+
+void GPSData::saveData(std::ofstream& outputfile)
+{
+  outputfile << std::hex << std::setw(2) << align_A << ':' << align_B << " - " << ubx_class << ':' << ubx_id << " - PL: ";
+  for (auto i : payload) outputfile << i;
+  outputfile << " - " << ubx_chk_A << ':' << ubx_chk_B << std::endl;
+}
+
+
+
 
 class ACCData
 {
@@ -80,35 +157,41 @@ short ACCData::getAccZ()
 class MetasystemData
 {
 private:
-  const unsigned char align = (unsigned char) 0xFF;
-  std::vector<std::vector<int16_t>> acc;
+  unsigned char align;
+  std::vector<std::vector<int16_t>> acc_v;
+  std::vector<int16_t> acc;
 public:
+  MetasystemData();
   void readData(std::ifstream& inputfile);
   void readDataS(TimeoutSerial& serial);
   void printData();
   void saveData(std::ofstream& outputfile);
 };
 
+
+MetasystemData::MetasystemData() {
+  acc.reserve(3);
+  align = (unsigned char)0xFF;
+}
+
 void MetasystemData::readData(std::ifstream& inputfile)
 {
-  std::vector<int16_t> temp(3);
   unsigned char buffer = 0;
   while (buffer != align) {
     inputfile.read((char*)&buffer, sizeof(align));
     //printf("%02x", buffer);
   }
   for (int i = 0; i < 400; i++) {
-    inputfile.read((char*)&(temp[0]), sizeof(temp[0]));
-    inputfile.read((char*)&(temp[1]), sizeof(temp[1]));
-    inputfile.read((char*)&(temp[2]), sizeof(temp[2]));
+    inputfile.read((char*)&(acc[0]), sizeof(acc[0]));
+    inputfile.read((char*)&(acc[1]), sizeof(acc[1]));
+    inputfile.read((char*)&(acc[2]), sizeof(acc[2]));
     inputfile.read((char*)&align, sizeof(align));
-    acc.push_back(temp);
+    acc_v.push_back(acc);
   }
 }
 
 void MetasystemData::readDataS(TimeoutSerial& serial)
 {
-  std::vector<int16_t> temp(3);
   unsigned char buffer = 0;
   while (buffer != align) {
     serial.read((char*)&buffer, sizeof(align));
@@ -125,31 +208,31 @@ void MetasystemData::readDataS(TimeoutSerial& serial)
   //  }
   //}
   for (int i = 0; i < 400; i++) {
-    serial.read((char*)&(temp[0]), sizeof(temp[0]));
-    serial.read((char*)&(temp[1]), sizeof(temp[1]));
-    serial.read((char*)&(temp[2]), sizeof(temp[2]));
+    serial.read((char*)&(acc[0]), sizeof(acc[0]));
+    serial.read((char*)&(acc[1]), sizeof(acc[1]));
+    serial.read((char*)&(acc[2]), sizeof(acc[2]));
     serial.read((char*)&align, sizeof(align));
-    acc.push_back(temp);
+    acc_v.push_back(acc);
   }
 }
 
 void MetasystemData::printData()
 {
-  for (size_t i = 0; i < acc.size(); i++) {
-    for (size_t j = 0; j < acc[0].size(); j++){
-      printf("%8d ", acc[i][j]);
+  for (size_t i = 0; i < acc_v.size(); i++) {
+    for (size_t j = 0; j < acc_v[0].size(); j++){
+      printf("%8d ", acc_v[i][j]);
     }
     printf("\n");
   }
-  acc.clear();
+  acc_v.clear();
 }
 
 void MetasystemData::saveData(std::ofstream& outputfile)
 {
-  for (size_t i = 0; i < acc.size(); i++) {
-    outputfile << acc[i][0] << ", " << acc[i][1] << ", " << acc[i][2] << std::endl;
+  for (size_t i = 0; i < acc_v.size(); i++) {
+    outputfile << acc_v[i][0] << ", " << acc_v[i][1] << ", " << acc_v[i][2] << std::endl;
   }
-  acc.clear();
+  acc_v.clear();
 }
 
 class InfomobilityData

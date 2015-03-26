@@ -1,4 +1,4 @@
-// Copyright 2014 Stefano Sinigardi
+// Copyright 2014, 2015 Stefano Sinigardi, Alessandro Fabbri
 // for any question, please mail stefano.sinigardi@gmail.com
 
 /************************************************************************
@@ -15,6 +15,9 @@
 * You should have received a copy of the GNU General Public License     *
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
+
+
+
 
 class SimpleSerial
 {

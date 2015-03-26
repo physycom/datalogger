@@ -1,4 +1,4 @@
-// Copyright 2014 Stefano Sinigardi
+// Copyright 2014, 2015 Stefano Sinigardi, Alessandro Fabbri
 // for any question, please mail stefano.sinigardi@gmail.com
 
 /************************************************************************
@@ -25,27 +25,15 @@
 
 #define WRITE_ON_STDOUT
 
-MetasystemData dato;
 
-void readDataS_function(TimeoutSerial serial, MetasystemData &dato){
-  dato.readDataS(serial);
-};
-
-void printData_function(MetasystemData &dato){
-  dato.printData();
-};
-
-
-void (MetasystemData::*punta_readDataS) (TimeoutSerial &serial) = &MetasystemData::readDataS;
-void (MetasystemData::*punta_printData) () = &MetasystemData::printData;
 
 
 int main(int argc, char ** argv)
 {
-  short systeminfo = 0;
+  size_t systeminfo = 0;
   std::cout << "Datalogger v" << MAJOR_VERSION << "." << MINOR_VERSION << std::endl;
   std::cout << "Usage: %s -p [serial_port] -b [baudrate] -t [box_type]" << std::endl;
-  std::cout << "\t- [serial_port] serial port number COMx" << std::endl;
+  std::cout << "\t- [serial_port] serial port name (COMx on WIN, /dev/ttyUSBx on UNIX)" << std::endl;
   std::cout << "\t- [baudrate] " << std::endl;
   std::cout << "\t- [box_type] " << std::endl;
   std::cout << "new: general fixes and improvements\n" << std::endl;
@@ -58,14 +46,14 @@ int main(int argc, char ** argv)
   if (argc > 1){ /* Parse arguments, if there are arguments supplied */
     for (int i = 1; i < argc; i++){
       if ((argv[i][0] == '-') || (argv[i][0] == '/')){       // switches or options...
-        switch (tolower(argv[i][1])){                     // Change to lower...if any
-        case 'p':   // if -i or /i
+        switch (tolower(argv[i][1])){
+        case 'p':
           serial_port = argv[++i];
           break;
-        case 'b':   // if -f or /f
+        case 'b':
           baudrate = atoi(argv[++i]);
           break;
-        case 't':   // if -t or /t
+        case 't':
           systeminfo = atoi(argv[++i]);
           break;
         default:    // no match...
@@ -81,8 +69,8 @@ int main(int argc, char ** argv)
   }
   else { std::cout << "Using default parameters" << std::endl; }
 
-  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem" });
-  while (systeminfo < 1 || systeminfo > 5){
+  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX" });
+  while (systeminfo < 1 || systeminfo > box_types.size()){
     std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
     for (size_t i = 0; i < box_types.size(); i++) std::cout << i + 1 << ". " << box_types[i] << std::endl;
     std::cin >> systeminfo;
@@ -443,6 +431,7 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 5) // MetaSystem
   {
+    MetasystemData dato;
     TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
@@ -469,32 +458,63 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-
-
-        boost::thread read_thread(punta_readDataS, serial);
-
+        dato.readDataS(serial);
 #ifdef WRITE_ON_STDOUT
-        boost::thread write_thread(punta_printData);
+        dato.printData();
 #else
-        boost::thread write_thread(dato.saveData, logfile);
+        dato.saveData(logfile);
+#endif
+
+        //data = .....
+      }
+    }
+
+    catch (boost::system::system_error& e)
+    {
+      std::cout << "Error: " << e.what() << std::endl;
+      return 1;
+    }
+  }
+
+
+  else if (systeminfo == 6) // UBX
+  {
+    GPSData dato;
+    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
+    serial.setTimeout(boost::posix_time::seconds(0));
+
+#if defined (USE_HOST_MEMORY)
+    remove_host_memory("UBX_DATA");
+    data = (Data*)allocate_host_memory("UBX_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
+#else
+    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
+#endif
+    logfile.open("ubx_data.log", std::ofstream::out);
+
+    try
+    {
+      bool exit = false;
+
+      while (exit == false)
+      {
+#ifdef _WIN32
+        if (GetAsyncKeyState(VK_ESCAPE))
+#else
+        if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
+#endif
+        {
+          exit = true;
+        }
+
+        dato.readDataS(serial);
+#ifdef WRITE_ON_STDOUT
+        dato.printData();
+#else
+        dato.saveData(logfile);
 #endif
 
 
-//        boost::thread read_thread(readDataS_function, serial, dato);
-//
-//#ifdef WRITE_ON_STDOUT
-//        boost::thread write_thread(printData_function, dato);
-//#else
-//        boost::thread write_thread(dato.saveData, logfile);
-//#endif
-
-         
-        //        dato.readDataS(serial);  // questo è thread1
-        //#ifdef WRITE_ON_STDOUT
-        //        dato.printData();        // questo è thread2
-        //#else
-        //        dato.saveData(logfile);
-        //#endif
+        //data = .....
       }
     }
 
