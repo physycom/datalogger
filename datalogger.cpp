@@ -432,6 +432,8 @@ int main(int argc, char ** argv)
   else if (systeminfo == 5) // MetaSystem
   {
     MetasystemData dato;
+    Data dw;
+    int indiceData = 0;
     TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
@@ -458,14 +460,23 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataS(serial);
-#ifdef WRITE_ON_STDOUT
-        dato.printData();
-#else
-        dato.saveData(logfile);
-#endif
+        dato.readDataS(serial, 1);
 
-        //data = .....
+        for (size_t i = 0; i < dato.acc_v.size(); i++) {
+          for (size_t j = 0; j < dato.acc_v[i].size(); j++) {
+            dw.d[j] = dato.acc_v[i].at(j);
+          }
+
+#ifdef WRITE_ON_STDOUT
+          for (size_t j = 0; j < dato.acc_v[i].size(); j++) std::cout << std::setw(8) << dw.d[j] << " "; std::cout << std::endl;
+#else
+          for (size_t j = 0; j < dato.acc_v[i].size(); j++) logfile << std::setw(8) << dw.d[j] << " "; logfile << std::endl;
+#endif
+          data[indiceData] = dw;
+          data[DIMENSIONE_MAX].d[0] = indiceData;
+          indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+        }
+        dato.acc_v.clear();
       }
     }
 

@@ -28,12 +28,12 @@
 #endif
 
 #define MAJOR_VERSION 0
-#define MINOR_VERSION 7
+#define MINOR_VERSION 8
 
 //#define USE_HOST_MEMORY
 #define DEBUG
 #define NDATA 17
-
+#define META_CONVERSION 0.002
 
 #include <iostream>
 #include <fstream>
@@ -42,6 +42,7 @@
 #include <cstring>
 #include <algorithm>
 #include <iomanip>
+#include <bitset>
 #include <boost/asio.hpp>
 #include <boost/utility.hpp>
 #include <boost/bind.hpp>

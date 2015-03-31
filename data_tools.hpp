@@ -22,6 +22,14 @@ struct Data{
 };
 
 
+union raw {
+  unsigned char value_ch[2];
+  //short value;
+  short value_15 : 15, : 1;
+};
+
+
+
 class GPSData
 {
 private:
@@ -52,10 +60,15 @@ GPSData::GPSData() {
 void GPSData::readData(std::ifstream& inputfile)
 {
   unsigned char buffer[2] = { 0, 0 };
-  while (buffer[0] != align_A && buffer[1] != align_B) {
+  do {
     inputfile.read((char*)&buffer, sizeof(align_A) + sizeof(align_B));
+    if (buffer[0] == align_A && buffer[1] == align_B) break;
+    if (buffer[1] == align_A) {
+      buffer[0] = buffer[1];
+      inputfile.read((char*)&buffer[1], sizeof(align_B));
+    }
     //printf("%02x", buffer);
-  }
+  } while (buffer[0] != align_A && buffer[1] != align_B);
   inputfile.read((char*)&ubx_class, sizeof(ubx_class));
   inputfile.read((char*)&ubx_id, sizeof(ubx_id));
   inputfile.read((char*)&ubx_length, sizeof(ubx_length));
@@ -75,10 +88,15 @@ void GPSData::readData(std::ifstream& inputfile)
 void GPSData::readDataS(TimeoutSerial& serial)
 {
   unsigned char buffer[2] = { 0, 0 };
-  while (buffer[0] != align_A && buffer[1] != align_B) {
+  do {
     serial.read((char*)&buffer, sizeof(align_A) + sizeof(align_B));
+    if (buffer[0] == align_A && buffer[1] == align_B) break;
+    if (buffer[1] == align_A) {
+      buffer[0] = buffer[1];
+      serial.read((char*)&buffer[1], sizeof(align_B));
+    }
     //printf("%02x", buffer);
-  }
+  } while (buffer[0] != align_A && buffer[1] != align_B);
   serial.read((char*)&ubx_class, sizeof(ubx_class));
   serial.read((char*)&ubx_id, sizeof(ubx_id));
   serial.read((char*)&ubx_length, sizeof(ubx_length));
@@ -157,83 +175,89 @@ short ACCData::getAccZ()
 class MetasystemData
 {
 private:
-  unsigned char align;
-  std::vector<std::vector<int16_t>> acc_v;
-  std::vector<int16_t> acc;
+  unsigned char align_char;
 public:
   MetasystemData();
+  std::vector<std::vector<float>> acc_v;
   void readData(std::ifstream& inputfile);
-  void readDataS(TimeoutSerial& serial);
-  void printData();
-  void saveData(std::ofstream& outputfile);
+  void readDataS(TimeoutSerial& serial, size_t sampleCounter);
 };
 
 
 MetasystemData::MetasystemData() {
-  acc.reserve(3);
-  align = (unsigned char)0xFF;
+  align_char = (unsigned char)0xFF;
 }
 
-void MetasystemData::readData(std::ifstream& inputfile)
-{
-  unsigned char buffer = 0;
-  while (buffer != align) {
-    inputfile.read((char*)&buffer, sizeof(align));
-    //printf("%02x", buffer);
-  }
-  for (int i = 0; i < 400; i++) {
-    inputfile.read((char*)&(acc[0]), sizeof(acc[0]));
-    inputfile.read((char*)&(acc[1]), sizeof(acc[1]));
-    inputfile.read((char*)&(acc[2]), sizeof(acc[2]));
-    inputfile.read((char*)&align, sizeof(align));
-    acc_v.push_back(acc);
-  }
-}
 
-void MetasystemData::readDataS(TimeoutSerial& serial)
-{
-  unsigned char buffer = 0;
-  while (buffer != align) {
-    serial.read((char*)&buffer, sizeof(align));
-    printf("%02x ", buffer);
-    if (buffer == align) printf("\n");
-  }
-  //int i = 0;
-  //while (true) {
-  //  serial.read((char*)&buffer, sizeof(align));
-  //  printf("%02x ", buffer); 
-  //  i++;
-  //  if (i % 7 == 0){
-  //    printf("\n"); i = 0;
-  //  }
-  //}
-  for (int i = 0; i < 400; i++) {
-    serial.read((char*)&(acc[0]), sizeof(acc[0]));
-    serial.read((char*)&(acc[1]), sizeof(acc[1]));
-    serial.read((char*)&(acc[2]), sizeof(acc[2]));
-    serial.read((char*)&align, sizeof(align));
-    acc_v.push_back(acc);
-  }
-}
+void MetasystemData::readData(std::ifstream& inputfile) {
+  unsigned char buffer;
+  size_t internal_counter = 0, external_counter = 0;
+  std::vector<float> acc(3);
+  raw data[3];
 
-void MetasystemData::printData()
-{
-  for (size_t i = 0; i < acc_v.size(); i++) {
-    for (size_t j = 0; j < acc_v[0].size(); j++){
-      printf("%8d ", acc_v[i][j]);
+  while (!inputfile.eof()) {
+    inputfile.read((char*)&buffer, sizeof(buffer));
+    if (buffer != align_char) {
+      data[external_counter].value_ch[internal_counter++] = buffer;
+      if (internal_counter == 2) {
+        internal_counter = 0;
+        external_counter++;
+      }
     }
-    printf("\n");
+    else {
+      internal_counter = 0;
+      external_counter = 0;
+    }
+
+    if (external_counter == 3) {
+      inputfile.read((char*)&buffer, sizeof(buffer));
+      if (buffer == align_char) {
+        for (size_t i = 0; i < acc.size(); i++) acc[i] = (float) (META_CONVERSION * data[i].value_15);
+        acc_v.push_back(acc);
+      }
+      else {
+        printf("Stream is corrupted!\n");
+      }
+      external_counter = 0;
+    }
   }
-  acc_v.clear();
 }
 
-void MetasystemData::saveData(std::ofstream& outputfile)
-{
-  for (size_t i = 0; i < acc_v.size(); i++) {
-    outputfile << acc_v[i][0] << ", " << acc_v[i][1] << ", " << acc_v[i][2] << std::endl;
+
+void MetasystemData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
+  unsigned char buffer;
+  size_t internal_counter = 0, external_counter = 0;
+  std::vector<float> acc(3);
+  raw data[3];
+
+  while (acc_v.size() < sampleCounter) {
+    serial.read((char*)&buffer, sizeof(buffer));
+    if (buffer != align_char) {
+      data[external_counter].value_ch[internal_counter++] = buffer;
+      if (internal_counter == 2) {
+        internal_counter = 0;
+        external_counter++;
+      }
+    }
+    else {
+      internal_counter = 0;
+      external_counter = 0;
+    }
+
+    if (external_counter == 3) {
+      serial.read((char*)&buffer, sizeof(buffer));
+      if (buffer == align_char) {
+        for (size_t i = 0; i < acc.size(); i++) acc[i] = (float)(META_CONVERSION * data[i].value_15);
+        acc_v.push_back(acc);
+      }
+      else {
+        printf("Stream is corrupted!\n");
+      }
+      external_counter = 0;
+    }
   }
-  acc_v.clear();
 }
+
 
 class InfomobilityData
 {
