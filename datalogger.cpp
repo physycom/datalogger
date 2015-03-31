@@ -588,6 +588,8 @@ int main(int argc, char ** argv)
         data[indiceData] = dw;
         data[DIMENSIONE_MAX].d[0] = indiceData;
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+
+        dato.data_v.clear();
       }
     }
 

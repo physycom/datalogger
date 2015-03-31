@@ -493,11 +493,9 @@ OctoData::OctoData(){
 
 void OctoData::readData(std::ifstream& inputfile) {
   unsigned char buffer;
-  size_t internal_counter = 0, external_counter = 0;
 
   while (!inputfile.eof()) {
     inputfile.read((char*)&buffer, sizeof(buffer));
-
 
     if (buffer == header_acc[0]) {
       inputfile.read((char*)&buffer, sizeof(buffer));
@@ -545,31 +543,29 @@ void OctoData::readData(std::ifstream& inputfile) {
 
 void OctoData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
   unsigned char buffer;
-  size_t internal_counter = 0, external_counter = 0;
+  std::vector<float> dato(3);
 
   while (data_v.size() < sampleCounter) {
     serial.read((char*)&buffer, sizeof(buffer));
 
 
-    if (buffer == header_acc[0]) {
+    if (buffer == header_acc[0] || buffer == header_gyr[0]) {
       serial.read((char*)&buffer, sizeof(buffer));
-      if (buffer == header_acc[1]) {
+      if (buffer == header_acc[1] || buffer == header_gyr[1]) {
         serial.read((char*)&buffer, sizeof(buffer));
         if (buffer == header_acc[2]) {
           type = '1';
           serial.read((char*)&id, sizeof(id));
           serial.read((char*)acc_data, 3 * sizeof(std::int16_t));
+          for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
+          data_v.push_back(dato);
         }
-      }
-    }
-    else if (buffer == header_gyr[0]) {
-      serial.read((char*)&buffer, sizeof(buffer));
-      if (buffer == header_gyr[1]) {
-        serial.read((char*)&buffer, sizeof(buffer));
-        if (buffer == header_gyr[2]) {
+        else if (buffer == header_gyr[2]) {
           type = '2';
           serial.read((char*)&id, sizeof(id));
           serial.read((char*)gyr_data, 3 * sizeof(std::int16_t));
+          for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
+          data_v.push_back(dato);
         }
       }
     }
@@ -589,7 +585,5 @@ void OctoData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
         }
       }
     }
-    else
-      printf("Unrecognized type: %02x\n", buffer);
   }
 }
