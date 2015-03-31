@@ -24,7 +24,8 @@ struct Data{
 
 union raw {
   unsigned char value_ch[2];
-  //short value;
+  unsigned short value_ush;
+  short value_sh;
   short value_15 : 15, : 1;
 };
 
@@ -200,6 +201,7 @@ void MetasystemData::readData(std::ifstream& inputfile) {
     if (buffer != align_char) {
       data[external_counter].value_ch[internal_counter++] = buffer;
       if (internal_counter == 2) {
+        data[external_counter].value_sh = (data[external_counter].value_ush << 1);
         internal_counter = 0;
         external_counter++;
       }
@@ -212,7 +214,7 @@ void MetasystemData::readData(std::ifstream& inputfile) {
     if (external_counter == 3) {
       inputfile.read((char*)&buffer, sizeof(buffer));
       if (buffer == align_char) {
-        for (size_t i = 0; i < acc.size(); i++) acc[i] = (float) (META_CONVERSION * data[i].value_15);
+        for (size_t i = 0; i < acc.size(); i++) acc[i] = data[i].value_sh;
         acc_v.push_back(acc);
       }
       else {
@@ -235,6 +237,7 @@ void MetasystemData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
     if (buffer != align_char) {
       data[external_counter].value_ch[internal_counter++] = buffer;
       if (internal_counter == 2) {
+        data[external_counter].value_sh = (data[external_counter].value_ush << 1);
         internal_counter = 0;
         external_counter++;
       }
@@ -247,7 +250,7 @@ void MetasystemData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
     if (external_counter == 3) {
       serial.read((char*)&buffer, sizeof(buffer));
       if (buffer == align_char) {
-        for (size_t i = 0; i < acc.size(); i++) acc[i] = (float)(META_CONVERSION * data[i].value_15);
+        for (size_t i = 0; i < acc.size(); i++) acc[i] = data[i].value_sh;
         acc_v.push_back(acc);
       }
       else {

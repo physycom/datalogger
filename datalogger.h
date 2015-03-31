@@ -33,7 +33,6 @@
 //#define USE_HOST_MEMORY
 #define DEBUG
 #define NDATA 17
-#define META_CONVERSION 0.002
 
 #include <iostream>
 #include <fstream>
