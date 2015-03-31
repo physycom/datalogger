@@ -238,6 +238,7 @@ void MetasystemData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
       data[external_counter].value_ch[internal_counter++] = buffer;
       if (internal_counter == 2) {
         data[external_counter].value_sh = (data[external_counter].value_ush << 1);
+        //if (data[external_counter].value_ch[1] & 0x4000) data[external_counter].value_ch[1] |= 0x8000; // PP mod, not working
         internal_counter = 0;
         external_counter++;
       }
@@ -462,4 +463,133 @@ void InfomobilityData::printGPSData()
 void InfomobilityData::saveGPSData(std::ofstream& outputfile)
 {
   return;
+}
+
+class OctoData{
+private:
+  char header_acc[3], header_gyr[3], header_gps[3];
+public:
+  OctoData();
+  char type;
+  char header[3];
+  unsigned char id;
+  std::int16_t acc_data[3];
+  std::int16_t gyr_data[3];
+  std::uint32_t timestamp;
+  unsigned char nav;
+  unsigned char heading;
+  unsigned char speed;
+  std::int32_t lat, lon;
+  std::vector<std::vector<float>> data_v;
+  void readData(std::ifstream& inputfile);
+  void readDataS(TimeoutSerial& serial, size_t sampleCounter);
+};
+
+OctoData::OctoData(){
+  header_acc[0] = 'A'; header_acc[1] = 'C'; header_acc[2] = 'C';
+  header_gyr[0] = 'G'; header_gyr[1] = 'Y'; header_gyr[2] = 'R';
+  header_gps[0] = 'G'; header_gps[1] = 'P'; header_gps[2] = 'S';
+};
+
+void OctoData::readData(std::ifstream& inputfile) {
+  unsigned char buffer;
+  size_t internal_counter = 0, external_counter = 0;
+
+  while (!inputfile.eof()) {
+    inputfile.read((char*)&buffer, sizeof(buffer));
+
+
+    if (buffer == header_acc[0]) {
+      inputfile.read((char*)&buffer, sizeof(buffer));
+      if (buffer == header_acc[1]) {
+        inputfile.read((char*)&buffer, sizeof(buffer));
+        if (buffer == header_acc[2]) {
+          type = '1';
+          inputfile.read((char*)&id, sizeof(id));
+          inputfile.read((char*)acc_data, 3 * sizeof(std::int16_t));
+        }
+      }
+    }
+    else if (buffer == header_gyr[0]) {
+      inputfile.read((char*)&buffer, sizeof(buffer));
+      if (buffer == header_gyr[1]) {
+        inputfile.read((char*)&buffer, sizeof(buffer));
+        if (buffer == header_gyr[2]) {
+          type = '2';
+          inputfile.read((char*)&id, sizeof(id));
+          inputfile.read((char*)gyr_data, 3 * sizeof(std::int16_t));
+        }
+      }
+    }
+    else if (buffer == header_gps[0]) {
+      inputfile.read((char*)&buffer, sizeof(buffer));
+      if (buffer == header_gps[1]) {
+        inputfile.read((char*)&buffer, sizeof(buffer));
+        if (buffer == header_gps[2]) {
+          type = '3';
+          inputfile.read((char*)&id, sizeof(id));
+          inputfile.read((char*)&timestamp, sizeof(timestamp));
+          inputfile.read((char*)&nav, sizeof(nav));
+          inputfile.read((char*)&heading, sizeof(heading));
+          inputfile.read((char*)&speed, sizeof(speed));
+          inputfile.read((char*)&lat, sizeof(lat));
+          inputfile.read((char*)&lon, sizeof(lon));
+        }
+      }
+    }
+    else
+      printf("Unrecognized type: %02x\n",buffer);
+  }
+}
+
+
+void OctoData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
+  unsigned char buffer;
+  size_t internal_counter = 0, external_counter = 0;
+
+  while (data_v.size() < sampleCounter) {
+    serial.read((char*)&buffer, sizeof(buffer));
+
+
+    if (buffer == header_acc[0]) {
+      serial.read((char*)&buffer, sizeof(buffer));
+      if (buffer == header_acc[1]) {
+        serial.read((char*)&buffer, sizeof(buffer));
+        if (buffer == header_acc[2]) {
+          type = '1';
+          serial.read((char*)&id, sizeof(id));
+          serial.read((char*)acc_data, 3 * sizeof(std::int16_t));
+        }
+      }
+    }
+    else if (buffer == header_gyr[0]) {
+      serial.read((char*)&buffer, sizeof(buffer));
+      if (buffer == header_gyr[1]) {
+        serial.read((char*)&buffer, sizeof(buffer));
+        if (buffer == header_gyr[2]) {
+          type = '2';
+          serial.read((char*)&id, sizeof(id));
+          serial.read((char*)gyr_data, 3 * sizeof(std::int16_t));
+        }
+      }
+    }
+    else if (buffer == header_gps[0]) {
+      serial.read((char*)&buffer, sizeof(buffer));
+      if (buffer == header_gps[1]) {
+        serial.read((char*)&buffer, sizeof(buffer));
+        if (buffer == header_gps[2]) {
+          type = '3';
+          serial.read((char*)&id, sizeof(id));
+          serial.read((char*)&timestamp, sizeof(timestamp));
+          serial.read((char*)&nav, sizeof(nav));
+          serial.read((char*)&heading, sizeof(heading));
+          serial.read((char*)&speed, sizeof(speed));
+          serial.read((char*)&lat, sizeof(lat));
+          serial.read((char*)&lon, sizeof(lon));
+        }
+      }
+    }
+    else
+      printf("Unrecognized type: %02x\n", buffer);
+  }
 }

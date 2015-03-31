@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
   }
   else { std::cout << "Using default parameters" << std::endl; }
 
-  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX" });
+  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo" });
   while (systeminfo < 1 || systeminfo > box_types.size()){
     std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
     for (size_t i = 0; i < box_types.size(); i++) std::cout << i + 1 << ". " << box_types[i] << std::endl;
@@ -528,7 +528,6 @@ int main(int argc, char ** argv)
         //data = .....
       }
     }
-
     catch (boost::system::system_error& e)
     {
       std::cout << "Error: " << e.what() << std::endl;
@@ -536,6 +535,68 @@ int main(int argc, char ** argv)
     }
   }
 
+  else if (systeminfo == 7) // Octo
+  {
+    OctoData dato;
+    Data dw;
+    int indiceData = 0;
+    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
+    serial.setTimeout(boost::posix_time::seconds(0));
+
+#if defined (USE_HOST_MEMORY)
+    remove_host_memory("O_DATA");
+    data = (Data*)allocate_host_memory("O_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
+#else
+    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
+#endif
+    logfile.open("o_data.log", std::ofstream::out);
+
+    try
+    {
+      bool exit = false;
+
+      while (exit == false)
+      {
+#ifdef _WIN32
+        if (GetAsyncKeyState(VK_ESCAPE))
+#else
+        if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
+#endif
+        {
+          exit = true;
+        }
+        
+        dato.readDataS(serial, 1);
+
+        switch (dato.type){
+        case '1':
+          for (int i = 0; i < 3; i++) dw.d[i] = dato.acc_data[i];
+          break;
+        case '2':
+          for (int i = 0; i < 3; i++) dw.d[i + 3] = dato.gyr_data[i];
+          break;
+        case '3':
+        default:
+          break;
+        }
+
+#ifdef WRITE_ON_STDOUT
+        for (int i = 0; i < 6; i++) std::cout << std::setw(8) << dw.d[i] << " "; std::cout << std::endl;
+#else
+        for (int i = 0; i < 6; i++) logfile << std::setw(8) << dw.d[i] << " "; logfile << std::endl;
+#endif
+        data[indiceData] = dw;
+        data[DIMENSIONE_MAX].d[0] = indiceData;
+        indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+      }
+    }
+
+    catch (boost::system::system_error& e)
+    {
+      std::cout << "Error: " << e.what() << std::endl;
+      return 1;
+    }
+  }
 
   else
   {

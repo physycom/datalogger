@@ -34,6 +34,8 @@
 #define DEBUG
 #define NDATA 17
 
+#define EPOCH_TIME_2000 946684800
+
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
