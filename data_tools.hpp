@@ -16,6 +16,112 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
+class NavData{
+  std::vector<std::string> nav_data; // {0=time, 1=ax, 2=ay, 3=az, 4=gx, 5=gy, 6=gz, 7=lat, 8=lon, 9=alt, 10=speed, 11=heading, 12=qlt, 13=HDOP}
+public:
+  void setTime(std::string date, std::string hour);
+  std::string getTime();
+
+  void setAcc_s(std::string * acc_data);
+  void setAcc(double * acc_data);
+  std::string * getAcc_s();
+  double * getAcc();
+  double getAcc(int index);
+
+  void setGyr_s(std::string * gyr_data);
+  void setGyr(double * gyr_data);
+  std::string * getGyr_s();
+  double * getGyr();
+  double getGyr(int index);
+
+  void setLat_s(std::string lat);
+  void setLat(double lat);
+  std::string getLat_s();
+  double getLat();
+
+  void setLon_s(std::string lon);
+  void setLon(double lon);
+  std::string getLon_s();
+  double getLon();
+
+  void setAlt_s(std::string alt);
+  void setAlt(double alt);
+  std::string getAlt_s();
+  double getAlt();
+
+  void setSpeed_s(std::string speed);
+  void setSpeed(double speed);
+  std::string getSpeed_s();
+  double getSpeed();
+
+  void setHead_s(std::string head);
+  void setHead(double head);
+  std::string getHead_s();
+  double getHead();
+
+  void setQlt_s(std::string qlt);
+  void setQlt(double qlt);
+  std::string getQlt_s();
+  double getQlt();
+
+  void setHDOP_s(std::string hdop);
+  void setHDOP(double hdop);
+  std::string getHDOP_s();
+  double getHDOP();
+
+  std::string to_string();
+};
+
+NavData::NavData(){
+  nav_data.resize(14);
+}
+
+void NavData::setAcc_s(std::string * acc_data){
+  for (int i = 0; i < 3; i++) nav_data[i + 1] = acc_data[i];
+};
+
+void NavData::setAcc(double * acc_data){
+  for (int i = 0; i < 3; i++) nav_data[i + 1] = boost::lexical_cast<std::string>(acc_data[i]);
+};
+
+std::string * NavData::getAcc_s(){
+  auto * acc = new std::string[3];
+  for (int i = 0; i < 3; i++) acc[i] = nav_data[i + 1];
+  return acc;
+};
+
+double * NavData::getAcc(){
+  auto * acc = new double[3];
+  for (int i = 0; i < 3; i++) acc[i] = boost::lexical_cast<double>(nav_data[i + 1]);
+  return acc;
+};
+
+double NavData::getAcc(int index){
+  return boost::lexical_cast<double>(nav_data[index + 1]);
+};
+
+//double NavData::getAcc(int index){
+//  switch (index){
+//  case 0:
+//  case 1:
+//  case 2:
+//    return boost::lexical_cast<double>(nav_data[index + 1]);
+//    break;
+//  default:
+//    throw("UNIBO: Index out of bounds...pirla!");
+//    break;
+//  }
+//};
+
+std::string NavData::to_string(){
+  std::string str("");
+  for (auto data : nav_data) str += data + ",";
+  return str.substr(0, str.size() - 1);
+};
+
+//***************************************************************************************************************
+
+
 struct Data{
   double d[NDATA];
   //int i[NDATA];
@@ -28,8 +134,6 @@ union raw {
   short value_sh;
   short value_15 : 15, : 1;
 };
-
-
 
 class GPSData
 {
