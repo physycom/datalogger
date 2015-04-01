@@ -47,8 +47,6 @@ public:
   GPSData();
   void readData(std::ifstream& inputfile);
   void readDataS(TimeoutSerial& serial);
-  void printData();
-  void saveData(std::ofstream& outputfile);
 };
 
 
@@ -60,73 +58,77 @@ GPSData::GPSData() {
 
 void GPSData::readData(std::ifstream& inputfile)
 {
-  unsigned char buffer[2] = { 0, 0 };
-  do {
-    inputfile.read((char*)&buffer, sizeof(align_A) + sizeof(align_B));
-    if (buffer[0] == align_A && buffer[1] == align_B) break;
-    if (buffer[1] == align_A) {
-      buffer[0] = buffer[1];
-      inputfile.read((char*)&buffer[1], sizeof(align_B));
+  unsigned char buffer;
+  bool found = false;
+
+  while (!found) {
+    inputfile.read((char*)&buffer, sizeof(buffer));
+    if (buffer == align_A) {
+      inputfile.read((char*)&buffer, sizeof(buffer));
+      if (buffer == align_B) {
+        inputfile.read((char*)&ubx_class, sizeof(ubx_class));
+        inputfile.read((char*)&ubx_id, sizeof(ubx_id));
+        inputfile.read((char*)&ubx_length, sizeof(ubx_length));
+
+        char * temp = new char[ubx_length];
+        payload.resize(ubx_length);
+        inputfile.read((char*)&temp, ubx_length*sizeof(char));
+        size_t ii = 0;
+        for (auto i : payload) i = temp[ii++];
+        delete[] temp;
+
+        inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+        inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+
+        found = true;
+        printf("%02x - %02x:%02x - %02x:%02x - PL: %s - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, payload, ubx_chk_A, ubx_chk_B);
+      }
+      else printf("align_B not valid: %02x:%02x\n", align_A, align_B);
     }
-    //printf("%02x", buffer);
-  } while (buffer[0] != align_A && buffer[1] != align_B);
-  inputfile.read((char*)&ubx_class, sizeof(ubx_class));
-  inputfile.read((char*)&ubx_id, sizeof(ubx_id));
-  inputfile.read((char*)&ubx_length, sizeof(ubx_length));
-
-  char * temp = new char[ubx_length];
-  payload.resize(ubx_length);
-  inputfile.read((char*)&temp, ubx_length*sizeof(char));
-  size_t ii = 0;
-  for (auto i : payload) i = temp[ii++];
-  delete[] temp;
-
-  inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
-  inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+    else printf("align_A not valid: %02x:%02x\n", align_A, align_B);
+  }
 }
 
 
 void GPSData::readDataS(TimeoutSerial& serial)
 {
-  unsigned char buffer[2] = { 0, 0 };
-  do {
-    serial.read((char*)&buffer, sizeof(align_A) + sizeof(align_B));
-    if (buffer[0] == align_A && buffer[1] == align_B) break;
-    if (buffer[1] == align_A) {
-      buffer[0] = buffer[1];
-      serial.read((char*)&buffer[1], sizeof(align_B));
-    }
-    //printf("%02x", buffer);
-  } while (buffer[0] != align_A && buffer[1] != align_B);
-  serial.read((char*)&ubx_class, sizeof(ubx_class));
-  serial.read((char*)&ubx_id, sizeof(ubx_id));
-  serial.read((char*)&ubx_length, sizeof(ubx_length));
+  unsigned char buffer_A = 0, buffer_B = 0;
+  bool found = false;
 
-  char * temp = new char[ubx_length];
-  payload.resize(ubx_length);
-  serial.read((char*)&temp, ubx_length*sizeof(char));
-  size_t ii = 0;
-  for (auto i : payload) i = temp[ii++];
-  delete[] temp;
+  while (!found) {
+    serial.read((char*)&buffer_A, sizeof(unsigned char));
+    //if (buffer_A == align_A) {
+    //  serial.read((char*)&buffer_B, sizeof(unsigned char));
+    //  if (buffer_B == align_B) {
+    //    serial.read((char*)&ubx_class, sizeof(ubx_class));
+    //    serial.read((char*)&ubx_id, sizeof(ubx_id));
+    //    serial.read((char*)&ubx_length, sizeof(ubx_length));
 
-  serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
-  serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+    //    char * temp = new char[ubx_length];
+    //    payload.resize(ubx_length);
+    //    serial.read((char*)&temp, ubx_length*sizeof(char));
+    //    size_t ii = 0;
+    //    for (auto i : payload) i = temp[ii++];
+    //    delete[] temp;
+
+    //    serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+    //    serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+
+    //    found = true;
+    //    printf("%02x - %02x:%02x - %02x:%02x - PL: %s - %02x:%02x\n", found, buffer_A, buffer_B, ubx_class, ubx_id, payload, ubx_chk_A, ubx_chk_B);
+    //  }
+    //  else printf("align_B not valid: %02x:%02x\n", buffer_A, buffer_B);
+    //}
+
+    //else printf("align_A not valid: %02x:%02x\n", buffer_A, buffer_B);
+    printf("%02x ", buffer_A);
+
+    //std::cout << std::hex << std::setw(2) << buffer_A << ':' << buffer_B << " - " << ubx_class << ':' << ubx_id << " - PL: ";
+    //for (auto i : payload) std::cout << i;
+    //std::cout << " - " << ubx_chk_A << ':' << ubx_chk_B << std::endl;
+
+  }
 }
-
-
-void GPSData::printData()
-{
-  printf("%02x:%02x - %02x:%02x - PL: %s - %02x:%02x\n", align_A, align_B, ubx_class, ubx_id, payload, ubx_chk_A, ubx_chk_B);
-}
-
-
-void GPSData::saveData(std::ofstream& outputfile)
-{
-  outputfile << std::hex << std::setw(2) << align_A << ':' << align_B << " - " << ubx_class << ':' << ubx_id << " - PL: ";
-  for (auto i : payload) outputfile << i;
-  outputfile << " - " << ubx_chk_A << ':' << ubx_chk_B << std::endl;
-}
-
 
 
 
@@ -493,29 +495,28 @@ OctoData::OctoData(){
 
 void OctoData::readData(std::ifstream& inputfile) {
   unsigned char buffer;
+  std::vector<float> dato(3);
 
   while (!inputfile.eof()) {
     inputfile.read((char*)&buffer, sizeof(buffer));
 
-    if (buffer == header_acc[0]) {
+    if (buffer == header_acc[0] || buffer == header_gyr[0]) {
       inputfile.read((char*)&buffer, sizeof(buffer));
-      if (buffer == header_acc[1]) {
+      if (buffer == header_acc[1] || buffer == header_gyr[1]) {
         inputfile.read((char*)&buffer, sizeof(buffer));
         if (buffer == header_acc[2]) {
           type = '1';
           inputfile.read((char*)&id, sizeof(id));
           inputfile.read((char*)acc_data, 3 * sizeof(std::int16_t));
+          for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
+          data_v.push_back(dato);
         }
-      }
-    }
-    else if (buffer == header_gyr[0]) {
-      inputfile.read((char*)&buffer, sizeof(buffer));
-      if (buffer == header_gyr[1]) {
-        inputfile.read((char*)&buffer, sizeof(buffer));
-        if (buffer == header_gyr[2]) {
+        else if (buffer == header_gyr[2]) {
           type = '2';
           inputfile.read((char*)&id, sizeof(id));
           inputfile.read((char*)gyr_data, 3 * sizeof(std::int16_t));
+          for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
+          data_v.push_back(dato);
         }
       }
     }
@@ -536,7 +537,7 @@ void OctoData::readData(std::ifstream& inputfile) {
       }
     }
     else
-      printf("Unrecognized type: %02x\n",buffer);
+      printf("Unrecognized type: %02x\n", buffer);
   }
 }
 

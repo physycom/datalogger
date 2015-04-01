@@ -22,6 +22,7 @@
 #include "data_tools.hpp"
 
 #include <boost/thread.hpp>
+#include <boost/regex.hpp>
 
 #define WRITE_ON_STDOUT
 
@@ -69,7 +70,7 @@ int main(int argc, char ** argv)
   }
   else { std::cout << "Using default parameters" << std::endl; }
 
-  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo" });
+  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA" });
   while (systeminfo < 1 || systeminfo > box_types.size()){
     std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
     for (size_t i = 0; i < box_types.size(); i++) std::cout << i + 1 << ". " << box_types[i] << std::endl;
@@ -494,14 +495,7 @@ int main(int argc, char ** argv)
     TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
-#if defined (USE_HOST_MEMORY)
-    remove_host_memory("UBX_DATA");
-    data = (Data*)allocate_host_memory("UBX_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
-#else
-    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
-#endif
     logfile.open("ubx_data.log", std::ofstream::out);
-
     try
     {
       bool exit = false;
@@ -518,14 +512,7 @@ int main(int argc, char ** argv)
         }
 
         dato.readDataS(serial);
-#ifdef WRITE_ON_STDOUT
-        dato.printData();
-#else
-        dato.saveData(logfile);
-#endif
 
-
-        //data = .....
       }
     }
     catch (boost::system::system_error& e)
@@ -565,7 +552,7 @@ int main(int argc, char ** argv)
         {
           exit = true;
         }
-        
+
         dato.readDataS(serial, 1);
 
         switch (dato.type){
@@ -600,10 +587,66 @@ int main(int argc, char ** argv)
     }
   }
 
+
+  else if (systeminfo == 8) // NMEA
+  {
+    GPSData dato;
+    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
+
+    logfile.open("n_data.log", std::ofstream::out);
+
+    std::vector<boost::regex> patterns;
+    //std::vector<std::string> pattern_names({ "GSV", "GLL", "RMC", "VTG", "GGA", "GSA" });
+    std::vector<std::string> pattern_names({ "RMC" });
+    for (auto i : pattern_names) patterns.push_back(boost::regex(i));
+
+    try {
+      std::string sst;
+      std::vector<std::string> strs;
+      int nterm = 0;
+      int indiceData = 0;
+      bool exit = false;
+      bool found = false;
+
+      while (exit == false)
+      {
+#ifdef _WIN32
+        if (GetAsyncKeyState(VK_ESCAPE))
+#else
+        if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
+#endif
+        {
+          exit = true;
+        }
+
+        sst = sserial.readLine();
+        boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(","));
+        found = false;
+        for (auto i : patterns) if (boost::regex_search(strs[0], i)) found = true;
+
+#ifdef WRITE_ON_STDOUT
+        if (found) { for (size_t i = 0; i < strs.size(); i++) std::cout << strs[i] << ","; std::cout << std::endl; }
+#else
+        if (found) { for (size_t i = 0; i < strs.size(); i++) logfile << strs[i] << ","; logfile << std::endl; }
+#endif
+      }
+    }
+    catch (boost::system::system_error& e)
+    {
+      std::cout << "Error: " << e.what() << std::endl;
+      return 1;
+    }
+  }
+
+
+
+
   else
   {
     std::cout << "Error: unidentified object #" << systeminfo << std::endl;
   }
+
+
 
 
   return 0;
