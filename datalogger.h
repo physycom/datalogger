@@ -32,9 +32,24 @@
 
 //#define USE_HOST_MEMORY
 #define DEBUG
-#define NDATA 17
 
 #define EPOCH_TIME_2000 946684800
+
+#define POS_TIME    0
+#define POS_AX      1 
+#define POS_AY      2
+#define POS_AZ      3
+#define POS_GX      4
+#define POS_GY      5
+#define POS_GZ      6
+#define POS_LAT     7
+#define POS_LON     8
+#define POS_ALT     9
+#define POS_SPEED  10
+#define POS_HEAD   11
+#define POS_QLT    12
+#define POS_HDOP   13
+#define POS_COUNT  14
 
 #include <iostream>
 #include <fstream>

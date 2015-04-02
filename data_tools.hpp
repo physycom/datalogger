@@ -16,24 +16,39 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
+#include "datalogger.h"
+
+struct Data{
+  double d[7]; //{0=index, 1-6:acc e gyr}
+  void set(double *data) {
+    for (int i = 1; i < 7; i++) d[i] = data[i-1];
+  }
+};
+
 class NavData{
   std::vector<std::string> nav_data; // {0=time, 1=ax, 2=ay, 3=az, 4=gx, 5=gy, 6=gz, 7=lat, 8=lon, 9=alt, 10=speed, 11=heading, 12=qlt, 13=HDOP}
 public:
+  NavData();
   void setTime(std::string date, std::string hour);
   std::string getTime();
 
   void setAcc_s(std::string * acc_data);
   void setAcc(double * acc_data);
+  void setAcc(float * acc_data);
   std::string * getAcc_s();
   double * getAcc();
   double getAcc(int index);
 
   void setGyr_s(std::string * gyr_data);
   void setGyr(double * gyr_data);
+  void setGyr(float * gyr_data);
   std::string * getGyr_s();
   double * getGyr();
   double getGyr(int index);
 
+  void setInertial_s(std::string * inertial_data);
+  double * getInertial();
+  
   void setLat_s(std::string lat);
   void setLat(double lat);
   std::string getLat_s();
@@ -73,45 +88,186 @@ public:
 };
 
 NavData::NavData(){
-  nav_data.resize(14);
+  nav_data.resize(POS_COUNT);
 }
 
 void NavData::setAcc_s(std::string * acc_data){
-  for (int i = 0; i < 3; i++) nav_data[i + 1] = acc_data[i];
+  for (int i = 0; i < 3; i++) nav_data[i + POS_AX] = acc_data[i];
 };
 
 void NavData::setAcc(double * acc_data){
-  for (int i = 0; i < 3; i++) nav_data[i + 1] = boost::lexical_cast<std::string>(acc_data[i]);
+  for (int i = 0; i < 3; i++) nav_data[i + POS_AX] = boost::lexical_cast<std::string>(acc_data[i]);
+};
+
+void NavData::setAcc(float * acc_data){
+  for (int i = 0; i < 3; i++) nav_data[i + POS_AX] = boost::lexical_cast<std::string>(acc_data[i]);
 };
 
 std::string * NavData::getAcc_s(){
   auto * acc = new std::string[3];
-  for (int i = 0; i < 3; i++) acc[i] = nav_data[i + 1];
+  for (int i = 0; i < 3; i++) acc[i] = nav_data[i + POS_AX];
   return acc;
 };
 
 double * NavData::getAcc(){
   auto * acc = new double[3];
-  for (int i = 0; i < 3; i++) acc[i] = boost::lexical_cast<double>(nav_data[i + 1]);
+  for (int i = 0; i < 3; i++) acc[i] = boost::lexical_cast<double>(nav_data[i + POS_AX]);
   return acc;
 };
 
 double NavData::getAcc(int index){
-  return boost::lexical_cast<double>(nav_data[index + 1]);
+  return boost::lexical_cast<double>(nav_data[index + POS_AX]);
 };
 
-//double NavData::getAcc(int index){
-//  switch (index){
-//  case 0:
-//  case 1:
-//  case 2:
-//    return boost::lexical_cast<double>(nav_data[index + 1]);
-//    break;
-//  default:
-//    throw("UNIBO: Index out of bounds...pirla!");
-//    break;
-//  }
-//};
+void NavData::setGyr_s(std::string * gyr_data){
+  for (int i = 0; i < 3; i++) nav_data[i + POS_GX] = gyr_data[i];
+};
+
+void NavData::setGyr(double * gyr_data){
+  for (int i = 0; i < 3; i++) nav_data[i + POS_GX] = boost::lexical_cast<std::string>(gyr_data[i]);
+};
+
+void NavData::setGyr(float * gyr_data){
+  for (int i = 0; i < 3; i++) nav_data[i + POS_GX] = boost::lexical_cast<std::string>(gyr_data[i]);
+};
+
+std::string * NavData::getGyr_s(){
+  auto * gyr = new std::string[3];
+  for (int i = 0; i < 3; i++) gyr[i] = nav_data[i + POS_GX];
+  return gyr;
+};
+
+double * NavData::getGyr(){
+  auto * gyr = new double[3];
+  for (int i = 0; i < 3; i++) gyr[i] = boost::lexical_cast<double>(nav_data[i + POS_GX]);
+  return gyr;
+};
+
+double NavData::getGyr(int index){
+  return boost::lexical_cast<double>(nav_data[index + POS_GX]);
+};
+
+void NavData::setInertial_s(std::string * inertial_data){  
+  for (int i = 0; i < 6; i++) nav_data[i + POS_AX] = inertial_data[i];
+};
+
+double * NavData::getInertial(){
+  double * data = new double[6];
+  for (int i = 0; i < 6; i++) data[i] = boost::lexical_cast<double>(nav_data[POS_AX+i]);
+  return data;
+};
+
+void NavData::setLat_s(std::string lat){
+  nav_data[POS_LAT] = lat;
+};
+
+void NavData::setLat(double lat){
+  nav_data[POS_LAT] = boost::lexical_cast<std::string>(lat);
+};
+
+std::string NavData::getLat_s(){
+  return nav_data[POS_LAT];
+};
+
+double NavData::getLat(){
+  return boost::lexical_cast<double>(nav_data[POS_LAT]);
+};
+
+void NavData::setLon_s(std::string lon){
+  nav_data[POS_LON] = lon;
+};
+
+void NavData::setLon(double lon){
+  nav_data[POS_LON] = boost::lexical_cast<std::string>(lon);
+};
+
+std::string NavData::getLon_s(){
+  return nav_data[POS_LON];
+};
+
+double NavData::getLon(){
+  return boost::lexical_cast<double>(nav_data[POS_LON]);
+};
+
+void NavData::setAlt_s(std::string alt){
+  nav_data[POS_ALT] = alt;
+};
+
+void NavData::setAlt(double alt){
+  nav_data[POS_ALT] = boost::lexical_cast<std::string>(alt);
+};
+
+std::string NavData::getAlt_s(){
+  return nav_data[POS_ALT];
+};
+
+double NavData::getAlt(){
+  return boost::lexical_cast<double>(nav_data[POS_ALT]);
+};
+
+void NavData::setSpeed_s(std::string speed){
+  nav_data[POS_SPEED] = speed;
+};
+
+void NavData::setSpeed(double speed){
+  nav_data[POS_SPEED] = boost::lexical_cast<std::string>(speed);
+};
+
+std::string NavData::getSpeed_s(){
+  return nav_data[POS_SPEED];
+};
+
+double NavData::getSpeed(){
+  return boost::lexical_cast<double>(nav_data[POS_SPEED]);
+};
+
+void NavData::setHead_s(std::string head){
+  nav_data[POS_HEAD] = head;
+};
+
+void NavData::setHead(double head){
+  nav_data[POS_HEAD] = boost::lexical_cast<std::string>(head);
+};
+
+std::string NavData::getHead_s(){
+  return nav_data[POS_HEAD];
+};
+
+double NavData::getHead(){
+  return boost::lexical_cast<double>(nav_data[POS_HEAD]);
+};
+
+void NavData::setQlt_s(std::string qlt){
+  nav_data[POS_QLT] = qlt;
+};
+
+void NavData::setQlt(double qlt){
+  nav_data[POS_QLT] = boost::lexical_cast<std::string>(qlt);
+};
+
+std::string NavData::getQlt_s(){
+  return nav_data[POS_QLT];
+};
+
+double NavData::getQlt(){
+  return boost::lexical_cast<double>(nav_data[POS_QLT]);
+};
+
+void NavData::setHDOP_s(std::string hdop){
+  nav_data[POS_HDOP] = hdop;
+};
+
+void NavData::setHDOP(double hdop){
+  nav_data[POS_HDOP] = boost::lexical_cast<std::string>(hdop);
+};
+
+std::string NavData::getHDOP_s(){
+  return nav_data[POS_HDOP];
+};
+
+double NavData::getHDOP(){
+  return boost::lexical_cast<double>(nav_data[POS_HDOP]);
+};
 
 std::string NavData::to_string(){
   std::string str("");
@@ -120,12 +276,6 @@ std::string NavData::to_string(){
 };
 
 //***************************************************************************************************************
-
-
-struct Data{
-  double d[NDATA];
-  //int i[NDATA];
-};
 
 
 union raw {

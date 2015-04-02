@@ -131,6 +131,10 @@ int main(int argc, char ** argv)
   std::cout << "Connecting to box TYPE " << box_types[systeminfo - 1] << " on PORT " << serial_port << " with BAUDRATE " << baudrate << std::endl;
 
   Data *data;
+  NavData navdata;
+  int indiceData = 0;
+  size_t counter = 0;
+  bool exit = false;
   std::ofstream logfile;
 
   COMport portacom;
@@ -139,25 +143,24 @@ int main(int argc, char ** argv)
   portacom.set_portname(serial_port);
   portacom.set_baudrate(baudrate);
 
+#if defined (USE_HOST_MEMORY)
+  remove_host_memory(box_types[systeminfo]);
+  data = (Data*)allocate_host_memory(box_types[systeminfo], (DIMENSIONE_MAX + 1)*sizeof(Data));
+#else
+  data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
+#endif
+  logfile.open(box_types[systeminfo] + ".log", std::ofstream::out);
+
+
+
+
   if (systeminfo == 1) //Infomobility
   {
     InfomobilityData dato;
     TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
-
-
-#if defined (USE_HOST_MEMORY)
-    remove_host_memory("I_DATA");
-    data = (Data*)allocate_host_memory("I_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
-#else
-    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
-#endif
-    logfile.open("i_data.log", std::ofstream::out);
-
-    try
-    {
-      bool exit = false;
+    try {
 
       while (exit == false)
       {
@@ -212,21 +215,9 @@ int main(int argc, char ** argv)
   {
     SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
 
-#if defined (USE_HOST_MEMORY)
-    remove_host_memory("MM_DATA");
-    data = (Data*)allocate_host_memory("MM_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
-#else
-    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
-#endif
-    logfile.open("mm_data.log", std::ofstream::out);
-
     try {
       std::string sst;
       std::vector<std::string> strs;
-      int nterm = 0;
-      Data dw;
-      int indiceData = 0;
-      bool exit = false;
 
       while (exit == false)
       {
@@ -245,37 +236,30 @@ int main(int argc, char ** argv)
 
         if (sst[0] == '{')
         {
-
-          replace(sst.begin(), sst.end(), '{', ' ');
-          replace(sst.begin(), sst.end(), '}', ' ');
-          replace(sst.begin(), sst.end(), ';', ' ');
-          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
-          nterm = int(strs.size());
-          for (int i = 0; i < nterm; i++) dw.d[i] = atof(strs[i].c_str());
+          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of("{}; "));
+          navdata.setAcc_s(&strs[0]);
 #ifdef WRITE_ON_STDOUT
-          for (int i = 0; i < nterm; i++) std::cout << dw.d[i] << " "; std::cout << std::endl;
+          std::cout << navdata.to_string() << std::endl;
 #else
-          for (int i = 0; i < nterm; i++) logfile << dw.d[i] << " "; logfile << std::endl;
+          logfile << navdata.to_string() << std::endl;
 #endif
         }
         else
         {
-          std::replace(sst.begin(), sst.end(), ';', ' ');
-          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
-          nterm = int(strs.size());
-          for (int i = 0; i < nterm; i++) dw.d[i] = atof(strs[i].c_str());
-          for (int i = 0; i < nterm; i++) dw.d[i] /= 256.;
+          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of("; "));
+          double gyr_data[3];
+          for (size_t i = 0; i < strs.size(); i++) gyr_data[i] = atof(strs[i].c_str()) / 256.;
+          navdata.setGyr(gyr_data);
 #ifdef WRITE_ON_STDOUT
-          for (int i = 0; i < nterm; i++) std::cout << dw.d[i] << " "; std::cout << std::endl;
+          std::cout << navdata.to_string() << std::endl;
 #else
-          for (int i = 0; i < nterm; i++) logfile << dw.d[i] << " "; logfile << std::endl;
+          logfile << navdata.to_string() << std::endl;
 #endif
         }
         break;
 
-
-        data[indiceData] = dw;
-        data[DIMENSIONE_MAX].d[0] = indiceData;
+        data[indiceData].d[0] = counter++;
+        data[indiceData].set(navdata.getInertial());
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
       }
     }
@@ -289,24 +273,11 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 3) // Texa
   {
-
     SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
-
-#if defined (USE_HOST_MEMORY)
-    remove_host_memory("T_DATA");
-    data = (Data*)allocate_host_memory("T_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
-#else
-    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
-#endif
-    logfile.open("t_data.log", std::ofstream::out);
 
     try {
       std::string sst;
       std::vector<std::string> strs;
-      int nterm = 0;
-      Data dw;
-      int indiceData = 0;
-      bool exit = false;
 
       while (exit == false)
       {
@@ -319,25 +290,19 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-
         sst = sserial.readLine();
-        //sst = serial.readStringUntil("\n");
-
 
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
-        nterm = int(strs.size());
-
-        for (int i = 0; i < nterm; i++) dw.d[i] = atof(strs[i].c_str());
+        navdata.setInertial_s(&strs[0]);
 
 #ifdef WRITE_ON_STDOUT
-        //for (int i = 0; i < nterm; i++) std::cout << boost::lexical_cast<std::string>(dw.d[i]) << " "; std::cout << std::endl;
-        for (int i = 0; i < nterm; i++) std::cout << dw.d[i] << " "; std::cout << std::endl;
+        std::cout << navdata.to_string() << std::endl;
 #else
-        for (int i = 0; i < nterm; i++) logfile << dw.d[i] << " "; logfile << std::endl;
+        logfile << navdata.to_string() << std::endl;
 #endif
 
-        data[indiceData] = dw;
-        data[DIMENSIONE_MAX].d[0] = indiceData;
+        data[indiceData].d[0] = counter++;
+        data[indiceData].set(navdata.getInertial());
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
       }
     }
@@ -352,21 +317,9 @@ int main(int argc, char ** argv)
   {
     SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
 
-#if defined (USE_HOST_MEMORY)
-    remove_host_memory("V_DATA");
-    data = (Data*)allocate_host_memory("V_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
-#else
-    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
-#endif
-    logfile.open("v_data.log", std::ofstream::out);
-
     try {
       std::string sst;
       std::vector<std::string> strs;
-      int nterm = 0;
-      Data dw;
-      int indiceData = 0;
-      bool exit = false;
 
       while (exit == false)
       {
@@ -380,46 +333,38 @@ int main(int argc, char ** argv)
         }
 
         sst = sserial.readLine();
-        //sst = serial.readStringUntil("\n");
 
         if (sst[1] == 'G')
         {
-          replace(sst.begin(), sst.end(), '{', ' ');
-          replace(sst.begin(), sst.end(), '}', ' ');
-          replace(sst.begin(), sst.end(), ';', ' ');
-          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
-          nterm = int(strs.size());
+          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of("{}; "));
 
-          for (int i = 0; i < nterm; i++) dw.d[i] = atof(strs[i].c_str());
+          navdata.setAcc_s(&strs[0]);
 
 #ifdef WRITE_ON_STDOUT
-          for (int i = 0; i < nterm; i++) std::cout << dw.d[i] << " "; std::cout << std::endl;
+          std::cout << navdata.to_string() << std::endl;
 #else
-          for (int i = 0; i < nterm; i++) logfile << dw.d[i] << " "; logfile << std::endl;
+          logfile << navdata.to_string() << std::endl;
 #endif
         }
         else
         {
-          std::replace(sst.begin(), sst.end(), '$', ' ');
-          std::replace(sst.begin(), sst.end(), 'A', ' ');
-          std::replace(sst.begin(), sst.end(), '*', ' ');
           sst.insert(8, " ", 1);
           sst.insert(15, " ", 1);
-          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(" "));
-          nterm = int(strs.size());
+          boost::algorithm::split(strs, sst, boost::algorithm::is_any_of("$A* "));
 
-          for (int i = 0; i < nterm; i++) dw.d[i] = atof(strs[i].c_str());
-          for (int i = 0; i < 3; i++) dw.d[i] /= 1000.;
+          double data_temp[3];
+          for (size_t i = 0; i < 3; i++) data_temp[i] = atof(strs[i].c_str()) / 1e3;
+          navdata.setAcc(data_temp);
 
 #ifdef WRITE_ON_STDOUT
-          for (int i = 0; i < nterm; i++) std::cout << dw.d[i] << " "; std::cout << std::endl;
+          std::cout << navdata.to_string() << std::endl;
 #else
-          for (int i = 0; i < nterm; i++) logfile << dw.d[i] << " "; logfile << std::endl;
+          logfile << navdata.to_string() << std::endl;
 #endif
         }
 
-        data[indiceData] = dw;
-        data[DIMENSIONE_MAX].d[0] = indiceData;
+        data[indiceData].d[0] = counter++;
+        data[indiceData].set(navdata.getInertial());
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
       }
     }
@@ -433,21 +378,11 @@ int main(int argc, char ** argv)
   else if (systeminfo == 5) // MetaSystem
   {
     MetasystemData dato;
-    Data dw;
     int indiceData = 0;
     TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
-#if defined (USE_HOST_MEMORY)
-    remove_host_memory("MS_DATA");
-    data = (Data*)allocate_host_memory("MS_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
-#else
-    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
-#endif
-    logfile.open("ms_data.log", std::ofstream::out);
-
-    try
-    {
+    try {
       bool exit = false;
 
       while (exit == false)
@@ -464,17 +399,15 @@ int main(int argc, char ** argv)
         dato.readDataS(serial, 1);
 
         for (size_t i = 0; i < dato.acc_v.size(); i++) {
-          for (size_t j = 0; j < dato.acc_v[i].size(); j++) {
-            dw.d[j] = dato.acc_v[i].at(j);
-          }
+          navdata.setAcc(&dato.acc_v[i][0]);
 
 #ifdef WRITE_ON_STDOUT
-          for (size_t j = 0; j < dato.acc_v[i].size(); j++) std::cout << std::setw(8) << dw.d[j] << " "; std::cout << std::endl;
+          std::cout << navdata.to_string() << std::endl;
 #else
-          for (size_t j = 0; j < dato.acc_v[i].size(); j++) logfile << std::setw(8) << dw.d[j] << " "; logfile << std::endl;
+          logfile << navdata.to_string() << std::endl;
 #endif
-          data[indiceData] = dw;
-          data[DIMENSIONE_MAX].d[0] = indiceData;
+          data[indiceData].d[0] = counter++;
+          data[indiceData].set(navdata.getInertial());
           indiceData = (indiceData + 1) % DIMENSIONE_MAX;
         }
         dato.acc_v.clear();
@@ -495,10 +428,7 @@ int main(int argc, char ** argv)
     TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
-    logfile.open("ubx_data.log", std::ofstream::out);
-    try
-    {
-      bool exit = false;
+    try {
 
       while (exit == false)
       {
@@ -513,6 +443,12 @@ int main(int argc, char ** argv)
 
         dato.readDataS(serial);
 
+#ifdef WRITE_ON_STDOUT
+        std::cout << navdata.to_string() << std::endl;
+#else
+        logfile << navdata.to_string() << std::endl;
+#endif
+
       }
     }
     catch (boost::system::system_error& e)
@@ -525,22 +461,10 @@ int main(int argc, char ** argv)
   else if (systeminfo == 7) // Octo
   {
     OctoData dato;
-    Data dw;
-    int indiceData = 0;
     TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
-#if defined (USE_HOST_MEMORY)
-    remove_host_memory("O_DATA");
-    data = (Data*)allocate_host_memory("O_DATA", (DIMENSIONE_MAX + 1)*sizeof(Data));
-#else
-    data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
-#endif
-    logfile.open("o_data.log", std::ofstream::out);
-
-    try
-    {
-      bool exit = false;
+    try {
 
       while (exit == false)
       {
@@ -555,25 +479,29 @@ int main(int argc, char ** argv)
 
         dato.readDataS(serial, 1);
 
+        double data_temp[3];
         switch (dato.type){
         case '1':
-          for (int i = 0; i < 3; i++) dw.d[i] = dato.acc_data[i];
+          for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3; 
+          navdata.setAcc(data_temp);
           break;
         case '2':
-          for (int i = 0; i < 3; i++) dw.d[i + 3] = dato.gyr_data[i];
+          for (size_t i = 0; i < 3; i++) data_temp[i] = dato.gyr_data[i] / 1e3;
+          navdata.setGyr(data_temp);
           break;
         case '3':
+          // TODO
         default:
           break;
         }
 
 #ifdef WRITE_ON_STDOUT
-        for (int i = 0; i < 6; i++) std::cout << std::setw(8) << dw.d[i] << " "; std::cout << std::endl;
+        std::cout << navdata.to_string() << std::endl;
 #else
-        for (int i = 0; i < 6; i++) logfile << std::setw(8) << dw.d[i] << " "; logfile << std::endl;
+        logfile << navdata.to_string() << std::endl;
 #endif
-        data[indiceData] = dw;
-        data[DIMENSIONE_MAX].d[0] = indiceData;
+        data[indiceData].d[0] = counter++;
+        data[indiceData].set(navdata.getInertial());
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
 
         dato.data_v.clear();
@@ -625,9 +553,9 @@ int main(int argc, char ** argv)
         for (auto i : patterns) if (boost::regex_search(strs[0], i)) found = true;
 
 #ifdef WRITE_ON_STDOUT
-        if (found) { for (size_t i = 0; i < strs.size(); i++) std::cout << strs[i] << ","; std::cout << std::endl; }
+        std::cout << navdata.to_string() << std::endl;
 #else
-        if (found) { for (size_t i = 0; i < strs.size(); i++) logfile << strs[i] << ","; logfile << std::endl; }
+        logfile << navdata.to_string() << std::endl;
 #endif
       }
     }
