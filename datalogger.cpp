@@ -293,7 +293,7 @@ int main(int argc, char ** argv)
         sst = sserial.readLine();
 
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
-        navdata.setInertial_s(&strs[0]);
+        navdata.setInertial_s(&strs[strs.size()-9]);
 
 #ifdef WRITE_ON_STDOUT
         std::cout << navdata.to_string() << std::endl;
