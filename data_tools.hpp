@@ -104,7 +104,6 @@ void NavData::setAcc(double * acc_data){
 
 void NavData::setAcc(float * acc_data){
   for (int i = 0; i < 3; i++) nav_data[i + POS_AX] = boost::lexical_cast<std::string>(acc_data[i]);
-  std::cout << "SET: "; for (int i = 0; i < 3; i++) std::cout << nav_data[i + POS_AX] << " "; std::cout << std::endl;
 };
 
 std::string * NavData::getAcc_s(){

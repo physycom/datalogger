@@ -398,14 +398,10 @@ int main(int argc, char ** argv)
         dato.readDataS(serial, 1);
 
         for (size_t i = 0; i < dato.acc_v.size(); i++) {
-
-          std::cout << "PRIMA: "; for (size_t j = 0; j < dato.acc_v[i].size(); j++) std::cout << dato.acc_v[i][j] << " "; std::cout << std::endl;
-
           navdata.setAcc(&dato.acc_v[i][0]);
 
 #ifdef WRITE_ON_STDOUT
-          std::cout << "PRINT:  ";
-          std::cout << navdata.to_string() << std::endl << std::endl << std::endl;
+          std::cout << navdata.to_string() << std::endl;
 #else
           logfile << navdata.to_string() << std::endl;
 #endif
