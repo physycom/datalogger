@@ -16,6 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
+#pragma once
 
 #define USE_SERIAL_PORT
 //#define USE_BINARY_FILE
@@ -31,7 +32,6 @@
 #define MINOR_VERSION 8
 
 //#define USE_HOST_MEMORY
-#define DEBUG
 
 #define EPOCH_TIME_2000 946684800
 
@@ -59,12 +59,14 @@
 #include <algorithm>
 #include <iomanip>
 #include <bitset>
+#include <vector>
 #include <boost/asio.hpp>
 #include <boost/utility.hpp>
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-
+#include <boost/thread.hpp>
+#include <boost/regex.hpp>
 
 #if defined(USE_HOST_MEMORY)
 #ifdef _WIN32
@@ -76,7 +78,24 @@
 #include <boost/interprocess/mapped_region.hpp>
 
 using namespace boost::interprocess;
+#endif
 
+
+std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA" });
+
+struct Data{
+  double d[7]; //{0=index, 1-6:acc e gyr}
+  void set(double *data) {
+    for (int i = 1; i < 7; i++) d[i] = data[i-1];
+  }
+  void setAcc(double *data) {
+    for (int i = 1; i < 4; i++) d[i] = data[i - 1];
+  }
+};
+
+
+
+#if defined(USE_HOST_MEMORY)
 
 void remove_host_memory(const char* name)
 {

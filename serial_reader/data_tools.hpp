@@ -18,15 +18,6 @@
 
 #include "datalogger.h"
 
-struct Data{
-  double d[7]; //{0=index, 1-6:acc e gyr}
-  void set(double *data) {
-    for (int i = 1; i < 7; i++) d[i] = data[i-1];
-  }
-  void setAcc(double *data) {
-    for (int i = 1; i < 4; i++) d[i] = data[i - 1];
-  }
-};
 
 class NavData{
   std::vector<std::string> nav_data; // {0=time, 1=ax, 2=ay, 3=az, 4=gx, 5=gy, 6=gz, 7=lat, 8=lon, 9=alt, 10=speed, 11=heading, 12=qlt, 13=HDOP}

@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{2AF8AFCA-A596-4811-B650-EFBE76DB099E}</ProjectGuid>
+    <ProjectGuid>{DB6FAE68-DBA4-41C1-A537-0180AD05810A}</ProjectGuid>
     <RootNamespace>serial_reader</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -39,7 +39,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <NuGetPackageImportStamp>4f313532</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>ff28eac7</NuGetPackageImportStamp>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -66,35 +66,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="datalogger.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="datalogger.h" />
     <ClInclude Include="data_tools.hpp" />
     <ClInclude Include="serial_tools.hpp" />
     <ClInclude Include="swap_tools.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="datalogger.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="packages\boost.1.57.0.0\build\native\boost.targets" Condition="Exists('packages\boost.1.57.0.0\build\native\boost.targets')" />
-    <Import Project="packages\boost_system.1.57.0.0\build\native\boost_system.targets" Condition="Exists('packages\boost_system.1.57.0.0\build\native\boost_system.targets')" />
-    <Import Project="packages\boost_date_time.1.57.0.0\build\native\boost_date_time.targets" Condition="Exists('packages\boost_date_time.1.57.0.0\build\native\boost_date_time.targets')" />
-    <Import Project="packages\boost_regex.1.57.0.0\build\native\boost_regex.targets" Condition="Exists('packages\boost_regex.1.57.0.0\build\native\boost_regex.targets')" />
-    <Import Project="packages\boost_thread.1.57.0.0\build\native\boost_thread.targets" Condition="Exists('packages\boost_thread.1.57.0.0\build\native\boost_thread.targets')" />
-    <Import Project="packages\boost_chrono.1.57.0.0\build\native\boost_chrono.targets" Condition="Exists('packages\boost_chrono.1.57.0.0\build\native\boost_chrono.targets')" />
+    <Import Project="..\packages\boost.1.57.0.0\build\native\boost.targets" Condition="Exists('..\packages\boost.1.57.0.0\build\native\boost.targets')" />
+    <Import Project="..\packages\boost_system.1.57.0.0\build\native\boost_system.targets" Condition="Exists('..\packages\boost_system.1.57.0.0\build\native\boost_system.targets')" />
+    <Import Project="..\packages\boost_date_time.1.57.0.0\build\native\boost_date_time.targets" Condition="Exists('..\packages\boost_date_time.1.57.0.0\build\native\boost_date_time.targets')" />
+    <Import Project="..\packages\boost_regex.1.57.0.0\build\native\boost_regex.targets" Condition="Exists('..\packages\boost_regex.1.57.0.0\build\native\boost_regex.targets')" />
+    <Import Project="..\packages\boost_thread.1.57.0.0\build\native\boost_thread.targets" Condition="Exists('..\packages\boost_thread.1.57.0.0\build\native\boost_thread.targets')" />
+    <Import Project="..\packages\boost_chrono.1.57.0.0\build\native\boost_chrono.targets" Condition="Exists('..\packages\boost_chrono.1.57.0.0\build\native\boost_chrono.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('packages\boost.1.57.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost.1.57.0.0\build\native\boost.targets'))" />
-    <Error Condition="!Exists('packages\boost_system.1.57.0.0\build\native\boost_system.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost_system.1.57.0.0\build\native\boost_system.targets'))" />
-    <Error Condition="!Exists('packages\boost_date_time.1.57.0.0\build\native\boost_date_time.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost_date_time.1.57.0.0\build\native\boost_date_time.targets'))" />
-    <Error Condition="!Exists('packages\boost_regex.1.57.0.0\build\native\boost_regex.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost_regex.1.57.0.0\build\native\boost_regex.targets'))" />
-    <Error Condition="!Exists('packages\boost_thread.1.57.0.0\build\native\boost_thread.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost_thread.1.57.0.0\build\native\boost_thread.targets'))" />
-    <Error Condition="!Exists('packages\boost_chrono.1.57.0.0\build\native\boost_chrono.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost_chrono.1.57.0.0\build\native\boost_chrono.targets'))" />
+    <Error Condition="!Exists('..\packages\boost.1.57.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.57.0.0\build\native\boost.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_system.1.57.0.0\build\native\boost_system.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_system.1.57.0.0\build\native\boost_system.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_date_time.1.57.0.0\build\native\boost_date_time.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_date_time.1.57.0.0\build\native\boost_date_time.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_regex.1.57.0.0\build\native\boost_regex.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_regex.1.57.0.0\build\native\boost_regex.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_thread.1.57.0.0\build\native\boost_thread.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_thread.1.57.0.0\build\native\boost_thread.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_chrono.1.57.0.0\build\native\boost_chrono.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_chrono.1.57.0.0\build\native\boost_chrono.targets'))" />
   </Target>
 </Project>
