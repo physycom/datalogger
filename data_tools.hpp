@@ -115,12 +115,12 @@ std::string * NavData::getAcc_s(){
 
 double * NavData::getAcc(){
   auto * acc = new double[3];
-  for (int i = 0; i < 3; i++) acc[i] = boost::lexical_cast<double>(nav_data[i + POS_AX]);
+  for (int i = 0; i < 3; i++) acc[i] = atof(nav_data[i + POS_AX].c_str());
   return acc;
 };
 
 double NavData::getAcc(int index){
-  return boost::lexical_cast<double>(nav_data[index + POS_AX]);
+  return atof(nav_data[index + POS_AX].c_str());
 };
 
 void NavData::setGyr_s(std::string * gyr_data){
@@ -143,12 +143,12 @@ std::string * NavData::getGyr_s(){
 
 double * NavData::getGyr(){
   auto * gyr = new double[3];
-  for (int i = 0; i < 3; i++) gyr[i] = boost::lexical_cast<double>(nav_data[i + POS_GX]);
+  for (int i = 0; i < 3; i++) gyr[i] = atof(nav_data[i + POS_GX].c_str());
   return gyr;
 };
 
 double NavData::getGyr(int index){
-  return boost::lexical_cast<double>(nav_data[index + POS_GX]);
+  return atof(nav_data[index + POS_GX].c_str());
 };
 
 void NavData::setInertial_s(std::string * inertial_data){  
@@ -157,7 +157,7 @@ void NavData::setInertial_s(std::string * inertial_data){
 
 double * NavData::getInertial(){
   double * data = new double[6];
-  for (int i = 0; i < 6; i++) data[i] = boost::lexical_cast<double>(nav_data[POS_AX+i]);
+  for (int i = 0; i < 6; i++) data[i] = atof(nav_data[POS_AX + i].c_str());
   return data;
 };
 
@@ -174,7 +174,7 @@ std::string NavData::getLat_s(){
 };
 
 double NavData::getLat(){
-  return boost::lexical_cast<double>(nav_data[POS_LAT]);
+  return atof(nav_data[POS_LAT].c_str());
 };
 
 void NavData::setLon_s(std::string lon){
@@ -190,7 +190,7 @@ std::string NavData::getLon_s(){
 };
 
 double NavData::getLon(){
-  return boost::lexical_cast<double>(nav_data[POS_LON]);
+  return atof(nav_data[POS_LON].c_str());
 };
 
 void NavData::setAlt_s(std::string alt){
@@ -206,7 +206,7 @@ std::string NavData::getAlt_s(){
 };
 
 double NavData::getAlt(){
-  return boost::lexical_cast<double>(nav_data[POS_ALT]);
+  return atof(nav_data[POS_ALT].c_str());
 };
 
 void NavData::setSpeed_s(std::string speed){
@@ -222,7 +222,7 @@ std::string NavData::getSpeed_s(){
 };
 
 double NavData::getSpeed(){
-  return boost::lexical_cast<double>(nav_data[POS_SPEED]);
+  return atof(nav_data[POS_SPEED].c_str());
 };
 
 void NavData::setHead_s(std::string head){
@@ -238,7 +238,7 @@ std::string NavData::getHead_s(){
 };
 
 double NavData::getHead(){
-  return boost::lexical_cast<double>(nav_data[POS_HEAD]);
+  return atof(nav_data[POS_HEAD].c_str());
 };
 
 void NavData::setQlt_s(std::string qlt){
@@ -254,7 +254,7 @@ std::string NavData::getQlt_s(){
 };
 
 double NavData::getQlt(){
-  return boost::lexical_cast<double>(nav_data[POS_QLT]);
+  return atof(nav_data[POS_QLT].c_str());
 };
 
 void NavData::setHDOP_s(std::string hdop){
@@ -270,7 +270,7 @@ std::string NavData::getHDOP_s(){
 };
 
 double NavData::getHDOP(){
-  return boost::lexical_cast<double>(nav_data[POS_HDOP]);
+  return atof(nav_data[POS_HDOP].c_str());
 };
 
 std::string NavData::to_string(){
@@ -280,7 +280,6 @@ std::string NavData::to_string(){
 };
 
 //***************************************************************************************************************
-
 
 union raw {
   unsigned char value_ch[2];
@@ -498,7 +497,7 @@ void MetasystemData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
       data[external_counter].value_ch[internal_counter++] = buffer;
       if (internal_counter == 2) {
         data[external_counter].value_sh = (data[external_counter].value_ush << 1);
-        //if (data[external_counter].value_ch[1] & 0x4000) data[external_counter].value_ch[1] |= 0x8000; // PP mod, not working
+        //if (data[external_counter].value_ch[1] & 0x4000) data[external_counter].value_ch[1] |= 0x8000; // PaoloPariani mod, not working
         internal_counter = 0;
         external_counter++;
       }
@@ -511,7 +510,7 @@ void MetasystemData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
     if (external_counter == 3) {
       serial.read((char*)&buffer, sizeof(buffer));
       if (buffer == align_char) {
-        for (size_t i = 0; i < acc.size(); i++) acc[i] = ((float) ((float) data[i].value_sh) / 1000. );
+        for (size_t i = 0; i < acc.size(); i++) acc[i] = ((float) data[i].value_sh) / 1e3f ;
         acc_v.push_back(acc);
       }
       else {

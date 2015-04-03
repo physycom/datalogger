@@ -401,20 +401,17 @@ int main(int argc, char ** argv)
 
           std::cout << "PRIMA: "; for (size_t j = 0; j < dato.acc_v[i].size(); j++) std::cout << dato.acc_v[i][j] << " "; std::cout << std::endl;
 
-//          navdata.setAcc(&dato.acc_v[i][0]);
-
+          navdata.setAcc(&dato.acc_v[i][0]);
 
 #ifdef WRITE_ON_STDOUT
-          std::cout << navdata.to_string() << std::endl;
+          std::cout << "PRINT:  ";
+          std::cout << navdata.to_string() << std::endl << std::endl << std::endl;
 #else
           logfile << navdata.to_string() << std::endl;
 #endif
+
           data[indiceData].d[0] = counter++;
-          
-//          for (int i = 0; i < 6; i++) std::cout << (navdata.getInertial())[i] << " "; std::cout << std::endl;
-//          for (int i = 0; i < 6; i++) std::cout << navdata.getAcc(i) << " "; std::cout << std::endl;
-//          data[indiceData].set(navdata.getInertial());
-          data[indiceData].setAcc(navdata.getAcc());
+          data[indiceData].set(navdata.getInertial());
           indiceData = (indiceData + 1) % DIMENSIONE_MAX;
         }
         dato.acc_v.clear();
