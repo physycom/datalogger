@@ -147,7 +147,8 @@ int main(int argc, char ** argv)
   remove_host_memory(box_types[systeminfo]);
   data = (Data*)allocate_host_memory(box_types[systeminfo], (DIMENSIONE_MAX + 1)*sizeof(Data));
 #else
-  data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
+//  data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
+  data = new Data[(DIMENSIONE_MAX + 1)];
 #endif
   logfile.open(box_types[systeminfo] + ".log", std::ofstream::out);
 
@@ -378,12 +379,10 @@ int main(int argc, char ** argv)
   else if (systeminfo == 5) // MetaSystem
   {
     MetasystemData dato;
-    int indiceData = 0;
     TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
     try {
-      bool exit = false;
 
       while (exit == false)
       {
@@ -399,7 +398,11 @@ int main(int argc, char ** argv)
         dato.readDataS(serial, 1);
 
         for (size_t i = 0; i < dato.acc_v.size(); i++) {
-          navdata.setAcc(&dato.acc_v[i][0]);
+
+          std::cout << "PRIMA: "; for (size_t j = 0; j < dato.acc_v[i].size(); j++) std::cout << dato.acc_v[i][j] << " "; std::cout << std::endl;
+
+//          navdata.setAcc(&dato.acc_v[i][0]);
+
 
 #ifdef WRITE_ON_STDOUT
           std::cout << navdata.to_string() << std::endl;
@@ -407,7 +410,11 @@ int main(int argc, char ** argv)
           logfile << navdata.to_string() << std::endl;
 #endif
           data[indiceData].d[0] = counter++;
-          data[indiceData].set(navdata.getInertial());
+          
+//          for (int i = 0; i < 6; i++) std::cout << (navdata.getInertial())[i] << " "; std::cout << std::endl;
+//          for (int i = 0; i < 6; i++) std::cout << navdata.getAcc(i) << " "; std::cout << std::endl;
+//          data[indiceData].set(navdata.getInertial());
+          data[indiceData].setAcc(navdata.getAcc());
           indiceData = (indiceData + 1) % DIMENSIONE_MAX;
         }
         dato.acc_v.clear();

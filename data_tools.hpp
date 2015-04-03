@@ -23,6 +23,9 @@ struct Data{
   void set(double *data) {
     for (int i = 1; i < 7; i++) d[i] = data[i-1];
   }
+  void setAcc(double *data) {
+    for (int i = 1; i < 4; i++) d[i] = data[i - 1];
+  }
 };
 
 class NavData{
@@ -101,6 +104,7 @@ void NavData::setAcc(double * acc_data){
 
 void NavData::setAcc(float * acc_data){
   for (int i = 0; i < 3; i++) nav_data[i + POS_AX] = boost::lexical_cast<std::string>(acc_data[i]);
+  std::cout << "SET: "; for (int i = 0; i < 3; i++) std::cout << nav_data[i + POS_AX] << " "; std::cout << std::endl;
 };
 
 std::string * NavData::getAcc_s(){
@@ -507,7 +511,7 @@ void MetasystemData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
     if (external_counter == 3) {
       serial.read((char*)&buffer, sizeof(buffer));
       if (buffer == align_char) {
-        for (size_t i = 0; i < acc.size(); i++) acc[i] = data[i].value_sh;
+        for (size_t i = 0; i < acc.size(); i++) acc[i] = ((float) ((float) data[i].value_sh) / 1000. );
         acc_v.push_back(acc);
       }
       else {
