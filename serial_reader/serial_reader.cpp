@@ -141,8 +141,8 @@ int main(int argc, char ** argv)
   portacom.set_baudrate(baudrate);
 
 #if defined (USE_HOST_MEMORY)
-  remove_host_memory(box_types[systeminfo]);
-  data = (Data*)allocate_host_memory(box_types[systeminfo], (DIMENSIONE_MAX + 1)*sizeof(Data));
+  remove_host_memory(box_types[systeminfo].c_str());
+  data = (Data*)allocate_host_memory(box_types[systeminfo].c_str(), (DIMENSIONE_MAX + 1)*sizeof(Data));
 #else
 //  data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
   data = new Data[(DIMENSIONE_MAX + 1)];

@@ -18,20 +18,23 @@
 
 #pragma once
 
+#define USE_HOST_MEMORY
+
 #define USE_SERIAL_PORT
 //#define USE_BINARY_FILE
 
 #define DIMENSIONE_MAX 1000
 #ifdef _WIN32
+#if !defined (_WIN32_WINNT)
 #define _WIN32_WINNT 0x0501
+#endif
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
 #endif
 
 #define MAJOR_VERSION 0
-#define MINOR_VERSION 8
+#define MINOR_VERSION 9
 
-//#define USE_HOST_MEMORY
 
 #define EPOCH_TIME_2000 946684800
 
@@ -51,6 +54,13 @@
 #define POS_HDOP   13
 #define POS_COUNT  14
 
+#include <boost/asio.hpp>
+#include <boost/utility.hpp>
+#include <boost/bind.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/thread.hpp>
+#include <boost/regex.hpp>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -60,13 +70,6 @@
 #include <iomanip>
 #include <bitset>
 #include <vector>
-#include <boost/asio.hpp>
-#include <boost/utility.hpp>
-#include <boost/bind.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/thread.hpp>
-#include <boost/regex.hpp>
 
 #if defined(USE_HOST_MEMORY)
 #ifdef _WIN32

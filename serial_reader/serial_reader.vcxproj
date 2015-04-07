@@ -72,7 +72,7 @@
     <ClInclude Include="swap_tools.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="datalogger.cpp" />
+    <ClCompile Include="serial_reader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
