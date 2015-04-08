@@ -19,6 +19,7 @@
 #pragma once
 
 #define USE_HOST_MEMORY
+//#define WRITE_ON_STDOUT
 
 #define USE_SERIAL_PORT
 //#define USE_BINARY_FILE

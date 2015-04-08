@@ -10,7 +10,7 @@ Fl_Value_Slider      *tempo;
 
 
 int tt = 0;
-bool redraw = true;
+bool redraw;
 
 
 static void quit_cb(Fl_Widget *w, void *v) {
@@ -18,7 +18,8 @@ static void quit_cb(Fl_Widget *w, void *v) {
 }
 
 void tempo_cb(Fl_Widget*) {
-  tt = int(tempo->value()); redraw = true;
+  tt = int(tempo->value()); 
+  redraw = true;
 }
 
 
@@ -28,7 +29,7 @@ void CreateMyWindow(void) {
 
   w_est = 23 + SCREEN_WIDTH + 23;   h_est = 23 + SCREEN_HEIGHT + 73;
 
-  form = new Fl_Window(w_est, h_est, "Texa");
+  form = new Fl_Window(w_est, h_est, "AccZ Viewer UniBo(TM)");
   new Fl_Box(FL_DOWN_FRAME, 20, 20, SCREEN_WIDTH + 6, SCREEN_HEIGHT + 6, "");
 
   scene = new Frame(23, 23, SCREEN_WIDTH, SCREEN_HEIGHT, 0);

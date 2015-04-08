@@ -5,6 +5,9 @@
 #include <FL/gl.h>
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_draw.H>
+#include <string>
+#include <cstring>
+#include <vector>
 
 void draw_scene();
 void draw_init();

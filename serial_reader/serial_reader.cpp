@@ -22,7 +22,6 @@
 #include "data_tools.hpp"
 
 
-#define WRITE_ON_STDOUT
 
 
 
@@ -142,7 +141,7 @@ int main(int argc, char ** argv)
   portacom.set_portname(serial_port);
   portacom.set_baudrate(baudrate);
 
-  logfile.open(box_types[systeminfo] + ".log", std::ofstream::out);
+  logfile.open(box_types[systeminfo-1] + ".log", std::ofstream::out);
 
 #if defined (USE_HOST_MEMORY)
   data = (Data*)get_host_allocated_memory(box_types[systeminfo].c_str());
@@ -253,9 +252,11 @@ int main(int argc, char ** argv)
         break;
 
 #if defined (USE_HOST_MEMORY)
-        data[indiceData].d[0] = (double) counter++;
-        data[indiceData].set(navdata.getInertial());
-        indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+        if (navdata.getAcc_s()[2].size()) {
+          data[indiceData].d[0] = (double)counter++;
+          data[indiceData].set(navdata.getInertial());
+          indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+        }
 #endif
       }
     }
@@ -289,7 +290,7 @@ int main(int argc, char ** argv)
         sst = sserial.readLine();
 
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
-        navdata.setInertial_s(&strs[strs.size()-9]);
+        if (strs.size() == 21) navdata.setInertial_s(&strs[strs.size()-9]);
 
 #ifdef WRITE_ON_STDOUT
         std::cout << navdata.to_string() << std::endl;
@@ -298,9 +299,11 @@ int main(int argc, char ** argv)
 #endif
 
 #if defined (USE_HOST_MEMORY)
-        data[indiceData].d[0] = (double) counter++;
-        data[indiceData].set(navdata.getInertial());
-        indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+        if (navdata.getAcc_s()[2].size()) {
+          data[indiceData].d[0] = (double)counter++;
+          data[indiceData].set(navdata.getInertial());
+          indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+        }
 #endif
       }
     }
@@ -362,9 +365,11 @@ int main(int argc, char ** argv)
         }
 
 #if defined (USE_HOST_MEMORY)
-        data[indiceData].d[0] = (double)counter++;
-        data[indiceData].set(navdata.getInertial());
-        indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+        if (navdata.getAcc_s()[2].size()) {
+          data[indiceData].d[0] = (double)counter++;
+          data[indiceData].set(navdata.getInertial());
+          indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+        }
 #endif
       }
     }
@@ -406,9 +411,11 @@ int main(int argc, char ** argv)
 #endif
 
 #if defined (USE_HOST_MEMORY)
-          data[indiceData].d[0] = (double)counter++;
-          data[indiceData].set(navdata.getInertial());
-          indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+          if (navdata.getAcc_s()[2].size()) {
+            data[indiceData].d[0] = (double)counter++;
+            data[indiceData].set(navdata.getInertial());
+            indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+          }
 #endif
         }
         dato.acc_v.clear();
@@ -504,9 +511,11 @@ int main(int argc, char ** argv)
 
 
 #if defined (USE_HOST_MEMORY)
-        data[indiceData].d[0] = (double)counter++;
-        data[indiceData].set(navdata.getInertial());
-        indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+        if (navdata.getAcc_s()[2].size()) {
+          data[indiceData].d[0] = (double)counter++;
+          data[indiceData].set(navdata.getInertial());
+          indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+        }
 #endif
 
         dato.data_v.clear();

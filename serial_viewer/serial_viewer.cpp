@@ -34,8 +34,8 @@ int main(int argc, char **argv) {
   }
 
   //replacement for system("Pause");
-  std::cin.sync();
-  std::cin.ignore();
+  //std::cin.sync();
+  //std::cin.ignore();
 
 
   CreateMyWindow();
