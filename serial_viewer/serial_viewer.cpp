@@ -29,6 +29,7 @@ void idle_cb(void*) { scene->redraw(); }
 //----------------------------------------------------------------
 int main(int argc, char **argv) {
 
+  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA" });
 
   dataM = (Data*)get_host_allocated_memory("M_DATA");
   dataT = (Data*)get_host_allocated_memory("T_DATA");

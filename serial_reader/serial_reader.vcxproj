@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="serial_reader.cpp" />
+    <ClCompile Include="sharedmem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -68,6 +68,8 @@ int main(int argc, char ** argv)
   }
   else { std::cout << "Using default parameters" << std::endl; }
 
+  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA" });
+
   while (systeminfo < 1 || systeminfo > box_types.size()){
     std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
     for (size_t i = 0; i < box_types.size(); i++) std::cout << i + 1 << ". " << box_types[i] << std::endl;
