@@ -8,41 +8,30 @@
 
 using namespace boost::algorithm;
 
-
-
-
-#define R2D 57.29578
-FILE* fp_log;
-int NDAT = 1000;
-
-
-Data *dataM; int indiceDataM;
-Data *dataT; int indiceDataT;
-Data *dataV; int indiceDataV;
-
-
+Data **data;
+int * indiceData;
 
 extern Frame *scene;
 
-//----------------------------------------------------------------------------------------
-void idle_cb(void*) { scene->redraw(); }
-//----------------------------------------------------------------
+
+void idle_cb(void*) {
+  scene->redraw();
+}
+
+
+
 int main(int argc, char **argv) {
 
+#if defined (USE_HOST_MEMORY)
   std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA" });
+  data = new Data*[box_types.size()];
+  indiceData = new int[box_types.size()];
 
-  dataM = (Data*)get_host_allocated_memory("M_DATA");
-  dataT = (Data*)get_host_allocated_memory("T_DATA");
-  dataV = (Data*)get_host_allocated_memory("V_DATA");
-
-
-  indiceDataM = int(dataM[NDAT].d[0] + 0.333);
-  indiceDataT = int(dataT[NDAT].d[0] + 0.333);
-  indiceDataV = int(dataV[NDAT].d[0] + 0.333);
-
-  std::cout << indiceDataM << std::endl;
-  std::cout << indiceDataM << std::endl;
-  std::cout << indiceDataM << std::endl;
+  unsigned int counter = 0;
+  for (auto box_type : box_types) {
+    remove_host_memory(box_type.c_str());
+    data[counter++] = (Data*)allocate_host_memory(box_type.c_str(), (DIMENSIONE_MAX+1)*sizeof(Data));
+  }
 
   //replacement for system("Pause");
   std::cin.sync();
@@ -52,6 +41,11 @@ int main(int argc, char **argv) {
   CreateMyWindow();
   Fl::add_idle(idle_cb, 0);
   Fl::run();
+#else
+  std::cout << "This program can only work with shared memory enabled" << std::endl;
+#endif
+
   return 0;
 }
-//----------------------------------------------------------------
+
+

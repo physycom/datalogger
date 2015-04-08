@@ -142,17 +142,11 @@ int main(int argc, char ** argv)
   portacom.set_portname(serial_port);
   portacom.set_baudrate(baudrate);
 
-#if defined (USE_HOST_MEMORY)
-  remove_host_memory(box_types[systeminfo].c_str());
-  data = (Data*)allocate_host_memory(box_types[systeminfo].c_str(), (DIMENSIONE_MAX + 1)*sizeof(Data));
-#else
-//  data = new Data[(DIMENSIONE_MAX + 1)*sizeof(Data)];
-  data = new Data[(DIMENSIONE_MAX + 1)];
-#endif
   logfile.open(box_types[systeminfo] + ".log", std::ofstream::out);
 
-
-
+#if defined (USE_HOST_MEMORY)
+  data = (Data*)get_host_allocated_memory(box_types[systeminfo].c_str());
+#endif
 
   if (systeminfo == 1) //Infomobility
   {
@@ -258,9 +252,11 @@ int main(int argc, char ** argv)
         }
         break;
 
-        data[indiceData].d[0] = counter++;
+#if defined (USE_HOST_MEMORY)
+        data[indiceData].d[0] = (double) counter++;
         data[indiceData].set(navdata.getInertial());
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+#endif
       }
     }
     catch (boost::system::system_error& e)
@@ -301,9 +297,11 @@ int main(int argc, char ** argv)
         logfile << navdata.to_string() << std::endl;
 #endif
 
-        data[indiceData].d[0] = counter++;
+#if defined (USE_HOST_MEMORY)
+        data[indiceData].d[0] = (double) counter++;
         data[indiceData].set(navdata.getInertial());
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+#endif
       }
     }
     catch (boost::system::system_error& e)
@@ -363,9 +361,11 @@ int main(int argc, char ** argv)
 #endif
         }
 
-        data[indiceData].d[0] = counter++;
+#if defined (USE_HOST_MEMORY)
+        data[indiceData].d[0] = (double)counter++;
         data[indiceData].set(navdata.getInertial());
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+#endif
       }
     }
     catch (boost::system::system_error& e)
@@ -405,9 +405,11 @@ int main(int argc, char ** argv)
           logfile << navdata.to_string() << std::endl;
 #endif
 
-          data[indiceData].d[0] = counter++;
+#if defined (USE_HOST_MEMORY)
+          data[indiceData].d[0] = (double)counter++;
           data[indiceData].set(navdata.getInertial());
           indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+#endif
         }
         dato.acc_v.clear();
       }
@@ -499,9 +501,13 @@ int main(int argc, char ** argv)
 #else
         logfile << navdata.to_string() << std::endl;
 #endif
-        data[indiceData].d[0] = counter++;
+
+
+#if defined (USE_HOST_MEMORY)
+        data[indiceData].d[0] = (double)counter++;
         data[indiceData].set(navdata.getInertial());
         indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+#endif
 
         dato.data_v.clear();
       }

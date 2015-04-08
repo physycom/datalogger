@@ -6,6 +6,6 @@
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_draw.H>
 
-void draw_scene(void);
-void draw_init(void);
+void draw_scene();
+void draw_init();
 

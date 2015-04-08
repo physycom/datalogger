@@ -6,4 +6,4 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Value_Slider.H>
 
-void CreateMyWindow(void);
+void CreateMyWindow();

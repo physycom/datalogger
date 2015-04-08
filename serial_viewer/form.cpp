@@ -10,12 +10,18 @@ Fl_Value_Slider      *tempo;
 
 
 int tt = 0;
-extern bool redraw;
-//-----------------------------------------------------------------------------
-static void quit_cb(Fl_Widget *w, void *v) { exit(0); }
-//-----------------------------------------------------------------------------
-void   tempo_cb(Fl_Widget*)  { tt = int(tempo->value()); redraw = true; }
-//-----------------------------------------------------------------------------
+bool redraw = true;
+
+
+static void quit_cb(Fl_Widget *w, void *v) {
+  exit(0); 
+}
+
+void tempo_cb(Fl_Widget*) {
+  tt = int(tempo->value()); redraw = true;
+}
+
+
 void CreateMyWindow(void) {
 
   int w_est, h_est;
@@ -36,7 +42,6 @@ void CreateMyWindow(void) {
   form->end();
   form->show();
   scene->show();
-}
-//-------------------------------------------------------------------------------------------------
 
+}
 
