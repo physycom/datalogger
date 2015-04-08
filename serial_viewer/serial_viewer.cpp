@@ -23,7 +23,7 @@ void idle_cb(void*) {
 int main(int argc, char **argv) {
 
 #if defined (USE_HOST_MEMORY)
-  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA" });
+  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA", "MagnetiMarelli_v2" });
   data = new Data*[box_types.size()];
   indiceData = new int[box_types.size()];
 

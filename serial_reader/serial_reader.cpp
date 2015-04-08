@@ -67,7 +67,7 @@ int main(int argc, char ** argv)
   }
   else { std::cout << "Using default parameters" << std::endl; }
 
-  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA" });
+  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA", "MagnetiMarelli_v2" });
 
   while (systeminfo < 1 || systeminfo > box_types.size()){
     std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
@@ -141,7 +141,7 @@ int main(int argc, char ** argv)
   portacom.set_portname(serial_port);
   portacom.set_baudrate(baudrate);
 
-  logfile.open(box_types[systeminfo-1] + ".log", std::ofstream::out);
+  logfile.open(box_types[systeminfo - 1] + ".log", std::ofstream::out);
 
 #if defined (USE_HOST_MEMORY)
   data = (Data*)get_host_allocated_memory(box_types[systeminfo].c_str());
@@ -290,7 +290,7 @@ int main(int argc, char ** argv)
         sst = sserial.readLine();
 
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
-        if (strs.size() == 21) navdata.setInertial_s(&strs[strs.size()-9]);
+        if (strs.size() == 21) navdata.setInertial_s(&strs[strs.size() - 9]);
 
 #ifdef WRITE_ON_STDOUT
         std::cout << navdata.to_string() << std::endl;
@@ -490,7 +490,7 @@ int main(int argc, char ** argv)
         double data_temp[3];
         switch (dato.type){
         case '1':
-          for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3; 
+          for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3;
           navdata.setAcc(data_temp);
           break;
         case '2':
@@ -580,6 +580,70 @@ int main(int argc, char ** argv)
     }
   }
 
+
+
+  else if (systeminfo == 9) // MagnetiMarelli_v2 //Octo-clone
+  {
+    OctoData dato;
+    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
+    serial.setTimeout(boost::posix_time::seconds(0));
+
+    try {
+
+      while (exit == false)
+      {
+#ifdef _WIN32
+        if (GetAsyncKeyState(VK_ESCAPE))
+#else
+        if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
+#endif
+        {
+          exit = true;
+        }
+
+        dato.readDataS(serial, 1);
+
+        double data_temp[3];
+        switch (dato.type){
+        case '1':
+          for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3;
+          navdata.setAcc(data_temp);
+          break;
+        case '2':
+          for (size_t i = 0; i < 3; i++) data_temp[i] = dato.gyr_data[i] / 1e3;
+          navdata.setGyr(data_temp);
+          break;
+        case '3':
+          // TODO
+        default:
+          break;
+        }
+
+#ifdef WRITE_ON_STDOUT
+        std::cout << navdata.to_string() << std::endl;
+#else
+        logfile << navdata.to_string() << std::endl;
+#endif
+
+
+#if defined (USE_HOST_MEMORY)
+        if (navdata.getAcc_s()[2].size()) {
+          data[indiceData].d[0] = (double)counter++;
+          data[indiceData].set(navdata.getInertial());
+          indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+        }
+#endif
+
+        dato.data_v.clear();
+      }
+    }
+
+    catch (boost::system::system_error& e)
+    {
+      std::cout << "Error: " << e.what() << std::endl;
+      return 1;
+    }
+  }
 
 
 

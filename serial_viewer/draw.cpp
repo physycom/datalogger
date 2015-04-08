@@ -4,7 +4,7 @@
 
 #define NUMERO_SCATOLETTE 8
 
-extern Data **data; 
+extern Data **data;
 extern int *indiceData;
 extern int tt;
 
@@ -25,9 +25,9 @@ extern int tt;
 //const Fl_Color FL_WHITE = 255;
 //std::vector<Fl_Color> colornames({ 56, 88, 60, 216, 248, 72, 76, 140});
 
-//GLdouble colorvalues[8][3] = { { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 1.0 }, { 0.0, 1.0, 0.0 }, { 1.0, 0.0, 0.0 }, { 1.0, 1.0, 0.0 }, { 0.0, 1.0, 1.0 }, { 1.0, 0.0, 1.0 }, { 1.0, 1.0, 1.0 } };
-GLdouble colorvalues[8][3] = { { 0.0, 71.0/255.0, 178.0/255.0 }, { 138.0/255.0, 230.0/255.0, 46.0/255.0 }, { 184.0/255.0, 147.0/255.0, 0.0 }, { 138.0/255.0, 46.0/255.0, 230.0/255.0 }, 
-                               { 46.0/255.0, 156.0/255.0, 193.0/255.0 }, { 153.0/255.0, 0.0, 0.0 }, { 230.0/255.0, 92.0/255.0, 0.0 }, { 102.0/255.0, 102.0/255.0, 51.0/255.0 } };
+//GLdouble colorvalues[9][3] = { { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 1.0 }, { 0.0, 1.0, 0.0 }, { 1.0, 0.0, 0.0 }, { 1.0, 1.0, 0.0 }, { 0.0, 1.0, 1.0 }, { 1.0, 0.0, 1.0 }, { 1.0, 1.0, 1.0 } };
+GLdouble colorvalues[9][3] = { { 0.0, 71.0 / 255.0, 178.0 / 255.0 }, { 138.0 / 255.0, 230.0 / 255.0, 46.0 / 255.0 }, { 184.0 / 255.0, 147.0 / 255.0, 0.0 }, { 138.0 / 255.0, 46.0 / 255.0, 230.0 / 255.0 },
+{ 46.0 / 255.0, 156.0 / 255.0, 193.0 / 255.0 }, { 153.0 / 255.0, 0.0, 0.0 }, { 230.0 / 255.0, 92.0 / 255.0, 0.0 }, { 102.0 / 255.0, 102.0 / 255.0, 51.0 / 255.0 }, { 51.0 / 255.0, 173.0 / 255.0, 51.0 / 255.0 } };
 
 void draw_init() {
   return;
@@ -49,18 +49,18 @@ void drawTextMain(double x, double y) {
 
 void drawAcc() {
   glPushMatrix();
-  glColor3d(102.0/255.0, 102.0/255.0, 102.0/255.0); //grey
+  glColor3d(102.0 / 255.0, 102.0 / 255.0, 102.0 / 255.0); //grey
   glLineWidth(2.0);
   for (int k = 0; k < 5; k++) {
-    glBegin(GL_LINES); 
-    glVertex3d(k, -5.0, 0.0); 
-    glVertex3d(k, +5.0, 0.0); 
+    glBegin(GL_LINES);
+    glVertex3d(k, -5.0, 0.0);
+    glVertex3d(k, +5.0, 0.0);
     glEnd();
   }
   for (int k = 0; k < 10; k++) {
-    glBegin(GL_LINES); 
-    glVertex3d(0.0, -5.0 + k, 0.0); 
-    glVertex3d(5.0, -5.0 + k, 0.0); 
+    glBegin(GL_LINES);
+    glVertex3d(0.0, -5.0 + k, 0.0);
+    glVertex3d(5.0, -5.0 + k, 0.0);
     glEnd();
   }
   double dt = 5.0 / (DIMENSIONE_MAX - tt);
@@ -68,7 +68,7 @@ void drawAcc() {
     //fl_color(colornames[i]);
     glColor3d(colorvalues[i][0], colorvalues[i][1], colorvalues[i][2]);
     glBegin(GL_LINE_STRIP);
-    for (int k = tt; k < DIMENSIONE_MAX; k++) 
+    for (int k = tt; k < DIMENSIONE_MAX; k++)
       glVertex3d((k - tt)*dt, data[i][(k + indiceData[i] + 1) % DIMENSIONE_MAX].d[3], 0.1);
     glEnd();
   }
