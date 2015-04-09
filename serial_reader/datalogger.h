@@ -24,6 +24,9 @@
 #define USE_SERIAL_PORT
 //#define USE_BINARY_FILE
 
+#define ENABLE_SLEEP
+#define SLEEP_TIME 500
+
 #define DIMENSIONE_MAX 1000
 #ifdef _WIN32
 #if !defined (_WIN32_WINNT)

@@ -21,9 +21,7 @@
 #include "swap_tools.hpp"
 #include "data_tools.hpp"
 
-
-
-
+#include <boost/thread.hpp>  // due to sleep
 
 
 int main(int argc, char ** argv)
@@ -144,7 +142,7 @@ int main(int argc, char ** argv)
   logfile.open(box_types[systeminfo - 1] + ".log", std::ofstream::out);
 
 #if defined (USE_HOST_MEMORY)
-  data = (Data*)get_host_allocated_memory(box_types[systeminfo].c_str());
+  data = (Data*)get_host_allocated_memory(box_types[systeminfo-1].c_str());
 #endif
 
   if (systeminfo == 1) //Infomobility
@@ -194,6 +192,10 @@ int main(int argc, char ** argv)
           dato.saveACCData(logfile);
 #endif
         }
+
+#ifdef ENABLE_SLEEP
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+#endif
       }
     }
 
@@ -258,6 +260,10 @@ int main(int argc, char ** argv)
           indiceData = (indiceData + 1) % DIMENSIONE_MAX;
         }
 #endif
+
+#ifdef ENABLE_SLEEP
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+#endif
       }
     }
     catch (boost::system::system_error& e)
@@ -304,6 +310,10 @@ int main(int argc, char ** argv)
           data[indiceData].set(navdata.getInertial());
           indiceData = (indiceData + 1) % DIMENSIONE_MAX;
         }
+#endif
+
+#ifdef ENABLE_SLEEP
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
 #endif
       }
     }
@@ -371,6 +381,10 @@ int main(int argc, char ** argv)
           indiceData = (indiceData + 1) % DIMENSIONE_MAX;
         }
 #endif
+
+#ifdef ENABLE_SLEEP
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+#endif
       }
     }
     catch (boost::system::system_error& e)
@@ -419,6 +433,9 @@ int main(int argc, char ** argv)
 #endif
         }
         dato.acc_v.clear();
+#ifdef ENABLE_SLEEP
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+#endif
       }
     }
 
@@ -519,6 +536,9 @@ int main(int argc, char ** argv)
 #endif
 
         dato.data_v.clear();
+#ifdef ENABLE_SLEEP
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+#endif
       }
     }
 
@@ -635,6 +655,9 @@ int main(int argc, char ** argv)
 #endif
 
         dato.data_v.clear();
+#ifdef ENABLE_SLEEP
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+#endif
       }
     }
 
