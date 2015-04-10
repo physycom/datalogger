@@ -24,7 +24,7 @@
 #define USE_SERIAL_PORT
 //#define USE_BINARY_FILE
 
-#define ENABLE_SLEEP
+//#define ENABLE_SLEEP
 #define SLEEP_TIME 500
 
 //#define COMMA_SEPARATION_VALUE ','
