@@ -27,6 +27,9 @@
 #define ENABLE_SLEEP
 #define SLEEP_TIME 500
 
+//#define COMMA_SEPARATION_VALUE ','
+#define COMMA_SEPARATION_VALUE ';'
+
 #define DIMENSIONE_MAX 1000
 #ifdef _WIN32
 #if !defined (_WIN32_WINNT)

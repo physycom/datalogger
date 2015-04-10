@@ -265,7 +265,7 @@ double NavData::getHDOP(){
 
 std::string NavData::to_string(){
   std::string str("");
-  for (auto data : nav_data) str += data + ",";
+  for (auto data : nav_data) str += data + COMMA_SEPARATION_VALUE;
   return str.substr(0, str.size() - 1);
 };
 
