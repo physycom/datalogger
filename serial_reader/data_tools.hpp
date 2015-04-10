@@ -23,7 +23,7 @@ class NavData{
   std::vector<std::string> nav_data; // {0=time, 1=ax, 2=ay, 3=az, 4=gx, 5=gy, 6=gz, 7=lat, 8=lon, 9=alt, 10=speed, 11=heading, 12=qlt, 13=HDOP}
 public:
   NavData();
-  void setTime(std::string date, std::string hour);
+  void setTime(time_t);
   std::string getTime();
 
   void setAcc_s(std::string * acc_data);
@@ -84,6 +84,13 @@ public:
 NavData::NavData(){
   nav_data.resize(POS_COUNT);
 }
+
+void NavData::setTime(time_t tnow){
+  struct tm * now = localtime(&tnow);
+  std::stringstream date;
+  date << now->tm_year + 1900 << TIME_SEPARATION_VALUE << (now->tm_mon + 1) << TIME_SEPARATION_VALUE << now->tm_mday << TIME_SEPARATION_VALUE << now->tm_hour << TIME_SEPARATION_VALUE << now->tm_min << TIME_SEPARATION_VALUE << now->tm_sec;
+  nav_data[POS_TIME] = date.str();
+};
 
 void NavData::setAcc_s(std::string * acc_data){
   for (int i = 0; i < 3; i++) nav_data[i + POS_AX] = acc_data[i];
