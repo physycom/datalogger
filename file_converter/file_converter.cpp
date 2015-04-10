@@ -16,40 +16,32 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
-
-
 #include "datalogger.h"
-#include "serial_tools.h"
-#include "swap_tools.hpp"
 #include "data_tools.hpp"
 
-#include <boost/thread.hpp>  // due to sleep
+////////////////////////
+#undef USE_HOST_MEMORY
+////////////////////////
 
 
 int main(int argc, char ** argv)
 {
+  std::string filename;
   size_t systeminfo = 0;
+  std::ifstream datafile;
+  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA", "MagnetiMarelli_v2" });
+
   std::cout << "Datalogger v" << MAJOR_VERSION << "." << MINOR_VERSION << std::endl;
-  std::cout << "Usage: %s -p [serial_port] -b [baudrate] -t [box_type]" << std::endl;
-  std::cout << "\t- [serial_port] serial port name (COMx on WIN, /dev/ttyUSBx on UNIX)" << std::endl;
-  std::cout << "\t- [baudrate] " << std::endl;
-  std::cout << "\t- [box_type] " << std::endl;
+  std::cout << "Usage: %s -f [filename] -t [box_type]" << std::endl;
   std::cout << "new: general fixes and improvements\n" << std::endl;
 
-  std::string serial_port = "";
-  int baudrate = -1;
-  bool serial_port_found = false;
-  bool baudrate_found = false;
 
   if (argc > 1){ /* Parse arguments, if there are arguments supplied */
     for (int i = 1; i < argc; i++){
       if ((argv[i][0] == '-') || (argv[i][0] == '/')){       // switches or options...
         switch (tolower(argv[i][1])){
-        case 'p':
-          serial_port = argv[++i];
-          break;
-        case 'b':
-          baudrate = atoi(argv[++i]);
+        case 'f':
+          filename = argv[++i];
           break;
         case 't':
           systeminfo = atoi(argv[++i]);
@@ -67,10 +59,19 @@ int main(int argc, char ** argv)
   }
   else { std::cout << "Using default parameters" << std::endl; }
 
-  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA", "MagnetiMarelli_v2" });
+  while (filename == ""){
+    std::cout << "Filename: " << std::endl;
+    std::cin >> filename;
+    if (std::cin.fail()) {
+      std::cin.clear();
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+  }
+
+  std::cout << "Opening file " << filename << std::endl;
 
   while (systeminfo < 1 || systeminfo > box_types.size()){
-    std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
+    std::cout << "Which kind of system was used to generate the file? Answer with the number" << std::endl;
     for (size_t i = 0; i < box_types.size(); i++) std::cout << i + 1 << ". " << box_types[i] << std::endl;
     std::cin >> systeminfo;
     if (std::cin.fail()) {
@@ -79,66 +80,11 @@ int main(int argc, char ** argv)
     }
   }
 
-
-  std::vector<int> baudrates({ 300, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400 });
-  for (auto br : baudrates)
-  {
-    baudrate_found = (br == baudrate);
-    if (baudrate_found) break;
-  }
-  while (!baudrate_found){
-    std::cout << "Baud rate: " << std::endl;
-    std::cin >> baudrate;
-    if (std::cin.fail()) {
-      std::cin.clear();
-      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-      continue;
-    }
-    for (auto br : baudrates)
-    {
-      baudrate_found = (br == baudrate);
-      if (baudrate_found) break;
-    }
-  }
-
-
-  std::vector<std::string> serial_port_names;
-  for (int i = 0; i < 256; i++) {
-#ifdef _WIN32
-    std::string serial_port_name = std::string("COM") + std::to_string(i);
-#else
-    std::string serial_port_name = std::string("/dev/ttyUSB") + std::to_string(i);
-#endif
-    serial_port_names.push_back(serial_port_name);
-  }
-  for (auto port : serial_port_names)
-  {
-    serial_port_found = (port == serial_port);
-    if (serial_port_found) break;
-  }
-  while (!serial_port_found){
-    std::cout << "Serial port name: " << std::endl;
-    std::cin >> serial_port;
-    for (auto port : serial_port_names)
-    {
-      serial_port_found = (port == serial_port);
-      if (serial_port_found) break;
-    }
-  }
-
-  std::cout << "Connecting to box TYPE " << box_types[systeminfo - 1] << " on PORT " << serial_port << " with BAUDRATE " << baudrate << std::endl;
-
   NavData navdata;
   int indiceData = 0;
   size_t counter = 0;
   bool exit = false;
   std::ofstream logfile;
-
-  COMport portacom;
-  //portacom.set_portname_stdin();
-  //portacom.set_baudrate_stdin();
-  portacom.set_portname(serial_port);
-  portacom.set_baudrate(baudrate);
 
   logfile.open(box_types[systeminfo - 1] + ".log", std::ofstream::out);
 
@@ -150,8 +96,12 @@ int main(int argc, char ** argv)
   if (systeminfo == 1) //Infomobility
   {
     InfomobilityData dato;
-    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
-    serial.setTimeout(boost::posix_time::seconds(0));
+
+    datafile.open(filename, std::ifstream::in | std::ios_base::binary);
+    if (datafile.fail()) {
+      std::cout << "Unable to open file" << std::endl;
+      std::exit(5);
+    }
 
     try {
 
@@ -166,10 +116,10 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.loadheaderS(serial);
+        dato.loadheader(datafile);
         dato.allocatePayload(dato.getPayloadSize());
-        dato.readPayloadS(serial);
-        dato.loadfooterS(serial);
+        dato.readPayload(datafile);
+        dato.loadfooter(datafile);
         dato.checkfooter();
         //dato.printheader();
         //dato.printfooter();
@@ -194,23 +144,23 @@ int main(int argc, char ** argv)
           dato.saveACCData(logfile);
 #endif
         }
-
-#ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
-#endif
       }
-    }
+  }
 
     catch (boost::system::system_error& e)
     {
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
-  }
+}
 
   else if (systeminfo == 2) //MagnetiMarelli
   {
-    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
+    datafile.open(filename, std::ifstream::in);
+    if (datafile.fail()) {
+      std::cout << "Unable to open file" << std::endl;
+      std::exit(5);
+    }
 
     try {
       std::string sst;
@@ -227,9 +177,7 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        sst = sserial.readLine();
-        //sst = serial.readStringUntil("\n");
-
+        std::getline(datafile, sst);
 
         if (sst[0] == '{')
         {
@@ -262,23 +210,23 @@ int main(int argc, char ** argv)
           indiceData = (indiceData + 1) % DIMENSIONE_MAX;
         }
 #endif
-
-#ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
-#endif
+        }
       }
-    }
     catch (boost::system::system_error& e)
     {
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
-  }
+    }
 
 
   else if (systeminfo == 3) // Texa
   {
-    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
+    datafile.open(filename, std::ifstream::in);
+    if (datafile.fail()) {
+      std::cout << "Unable to open file" << std::endl;
+      std::exit(5);
+    }
 
     try {
       std::string sst;
@@ -295,7 +243,7 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        sst = sserial.readLine();
+        std::getline(datafile, sst);
 
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
         if (strs.size() == 21) navdata.setInertial_s(&strs[strs.size() - 9]);
@@ -313,22 +261,22 @@ int main(int argc, char ** argv)
           indiceData = (indiceData + 1) % DIMENSIONE_MAX;
         }
 #endif
-
-#ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
-#endif
+        }
       }
-    }
     catch (boost::system::system_error& e)
     {
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
-  }
+    }
 
   else if (systeminfo == 4) // ViaSat
   {
-    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
+    datafile.open(filename, std::ifstream::in);
+    if (datafile.fail()) {
+      std::cout << "Unable to open file" << std::endl;
+      std::exit(5);
+    }
 
     try {
       std::string sst;
@@ -345,7 +293,7 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        sst = sserial.readLine();
+        std::getline(datafile, sst);
 
         if (sst[1] == 'G')
         {
@@ -383,10 +331,6 @@ int main(int argc, char ** argv)
           indiceData = (indiceData + 1) % DIMENSIONE_MAX;
         }
 #endif
-
-#ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
-#endif
       }
     }
     catch (boost::system::system_error& e)
@@ -399,8 +343,11 @@ int main(int argc, char ** argv)
   else if (systeminfo == 5) // MetaSystem
   {
     MetasystemData dato;
-    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
-    serial.setTimeout(boost::posix_time::seconds(0));
+    datafile.open(filename.c_str(), std::ios::in | std::ios::binary);
+    if (!datafile) {
+      std::cout << "Unable to open file" << std::endl;
+      std::exit(5);
+    }
 
     try {
 
@@ -415,7 +362,7 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataS(serial, 1);
+        dato.readData(datafile, 1);
 
         for (size_t i = 0; i < dato.acc_v.size(); i++) {
           navdata.setAcc(&dato.acc_v[i][0]);
@@ -435,11 +382,8 @@ int main(int argc, char ** argv)
 #endif
         }
         dato.acc_v.clear();
-#ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
-#endif
+        }
       }
-    }
 
     catch (boost::system::system_error& e)
     {
@@ -452,8 +396,11 @@ int main(int argc, char ** argv)
   else if (systeminfo == 6) // UBX
   {
     GPSData dato;
-    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
-    serial.setTimeout(boost::posix_time::seconds(0));
+    datafile.open(filename, std::ifstream::in | std::ios_base::binary);
+    if (datafile.fail()) {
+      std::cout << "Unable to open file" << std::endl;
+      std::exit(5);
+    }
 
     try {
 
@@ -466,9 +413,9 @@ int main(int argc, char ** argv)
 #endif
         {
           exit = true;
-        }
+      }
 
-        dato.readDataS(serial);
+        dato.readData(datafile);
 
 #ifdef WRITE_ON_STDOUT
         std::cout << navdata.to_string() << std::endl;
@@ -476,8 +423,8 @@ int main(int argc, char ** argv)
         logfile << navdata.to_string() << std::endl;
 #endif
 
-      }
-    }
+  }
+  }
     catch (boost::system::system_error& e)
     {
       std::cout << "Error: " << e.what() << std::endl;
@@ -488,8 +435,11 @@ int main(int argc, char ** argv)
   else if (systeminfo == 7) // Octo
   {
     OctoData dato;
-    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
-    serial.setTimeout(boost::posix_time::seconds(0));
+    datafile.open(filename, std::ifstream::in | std::ios_base::binary);
+    if (datafile.fail()) {
+      std::cout << "Unable to open file" << std::endl;
+      std::exit(5);
+    }
 
     try {
 
@@ -504,7 +454,7 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataS(serial, 1);
+        dato.readData(datafile, 1);
 
         double data_temp[3];
         switch (dato.type){
@@ -538,11 +488,8 @@ int main(int argc, char ** argv)
 #endif
 
         dato.data_v.clear();
-#ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
-#endif
       }
-    }
+  }
 
     catch (boost::system::system_error& e)
     {
@@ -555,7 +502,11 @@ int main(int argc, char ** argv)
   else if (systeminfo == 8) // NMEA
   {
     GPSData dato;
-    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
+    datafile.open(filename, std::ifstream::in);
+    if (datafile.fail()) {
+      std::cout << "Unable to open file" << std::endl;
+      std::exit(5);
+    }
 
     std::vector<boost::regex> patterns;
     //std::vector<std::string> pattern_names({ "GSV", "GLL", "RMC", "VTG", "GGA", "GSA" });
@@ -581,7 +532,7 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        sst = sserial.readLine();
+        std::getline(datafile, sst);
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(","));
         found = false;
         for (auto i : patterns) if (boost::regex_search(strs[0], i)) found = true;
@@ -591,22 +542,25 @@ int main(int argc, char ** argv)
 #else
         logfile << navdata.to_string() << std::endl;
 #endif
+        }
       }
-    }
     catch (boost::system::system_error& e)
     {
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
-  }
+    }
 
 
 
   else if (systeminfo == 9) // MagnetiMarelli_v2 //Octo-clone
   {
     OctoData dato;
-    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
-    serial.setTimeout(boost::posix_time::seconds(0));
+    datafile.open(filename, std::ifstream::in | std::ios_base::binary);
+    if (datafile.fail()) {
+      std::cout << "Unable to open file" << std::endl;
+      std::exit(5);
+    }
 
     try {
 
@@ -621,7 +575,7 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataS(serial, 1);
+        dato.readData(datafile, 1);
 
         double data_temp[3];
         switch (dato.type){
@@ -655,11 +609,8 @@ int main(int argc, char ** argv)
 #endif
 
         dato.data_v.clear();
-#ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
-#endif
       }
-    }
+  }
 
     catch (boost::system::system_error& e)
     {
@@ -677,6 +628,7 @@ int main(int argc, char ** argv)
 
 
   logfile.close();
+  datafile.close();
 
   return 0;
 }

@@ -461,7 +461,7 @@ void MetasystemData::readData(std::ifstream& inputfile, size_t sampleCounter) {
         acc_v.push_back(acc);
       }
       else {
-        printf("Stream is corrupted!\n");
+        printf("%02x %02x | %02x %02x | %02x %02x | %02x - stream corrupted, not ff terminated!\n", data[0].value_ch[0], data[0].value_ch[1], data[1].value_ch[0], data[1].value_ch[1], data[2].value_ch[0], data[2].value_ch[1], buffer);
       }
       external_counter = 0;
     }
@@ -498,7 +498,7 @@ void MetasystemData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
         acc_v.push_back(acc);
       }
       else {
-        printf("Stream is corrupted!\n");
+        printf("%02x %02x | %02x %02x | %02x %02x | %02x - stream corrupted, not ff terminated!\n", data[0].value_ch[0], data[0].value_ch[1], data[1].value_ch[0], data[1].value_ch[1], data[2].value_ch[0], data[2].value_ch[1], buffer);
       }
       external_counter = 0;
     }
