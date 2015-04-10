@@ -17,7 +17,7 @@
 ************************************************************************/
 
 #include "datalogger.h"
-
+#include "serial_tools.h"
 
 class NavData{
   std::vector<std::string> nav_data; // {0=time, 1=ax, 2=ay, 3=az, 4=gx, 5=gy, 6=gz, 7=lat, 8=lon, 9=alt, 10=speed, 11=heading, 12=qlt, 13=HDOP}
@@ -339,41 +339,34 @@ void GPSData::readData(std::ifstream& inputfile)
 
 void GPSData::readDataS(TimeoutSerial& serial)
 {
-  unsigned char buffer_A = 0, buffer_B = 0;
+  unsigned char buffer;
   bool found = false;
 
   while (!found) {
-    serial.read((char*)&buffer_A, sizeof(unsigned char));
-    //if (buffer_A == align_A) {
-    //  serial.read((char*)&buffer_B, sizeof(unsigned char));
-    //  if (buffer_B == align_B) {
-    //    serial.read((char*)&ubx_class, sizeof(ubx_class));
-    //    serial.read((char*)&ubx_id, sizeof(ubx_id));
-    //    serial.read((char*)&ubx_length, sizeof(ubx_length));
+    serial.read((char*)&buffer, sizeof(buffer));
+    if (buffer == align_A) {
+      serial.read((char*)&buffer, sizeof(buffer));
+      if (buffer == align_B) {
+        serial.read((char*)&ubx_class, sizeof(ubx_class));
+        serial.read((char*)&ubx_id, sizeof(ubx_id));
+        serial.read((char*)&ubx_length, sizeof(ubx_length));
 
-    //    char * temp = new char[ubx_length];
-    //    payload.resize(ubx_length);
-    //    serial.read((char*)&temp, ubx_length*sizeof(char));
-    //    size_t ii = 0;
-    //    for (auto i : payload) i = temp[ii++];
-    //    delete[] temp;
+        char * temp = new char[ubx_length];
+        payload.resize(ubx_length);
+        serial.read((char*)&temp, ubx_length*sizeof(char));
+        size_t ii = 0;
+        for (auto i : payload) i = temp[ii++];
+        delete[] temp;
 
-    //    serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
-    //    serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+        serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+        serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
 
-    //    found = true;
-    //    printf("%02x - %02x:%02x - %02x:%02x - PL: %s - %02x:%02x\n", found, buffer_A, buffer_B, ubx_class, ubx_id, payload, ubx_chk_A, ubx_chk_B);
-    //  }
-    //  else printf("align_B not valid: %02x:%02x\n", buffer_A, buffer_B);
-    //}
-
-    //else printf("align_A not valid: %02x:%02x\n", buffer_A, buffer_B);
-    printf("%02x ", buffer_A);
-
-    //std::cout << std::hex << std::setw(2) << buffer_A << ':' << buffer_B << " - " << ubx_class << ':' << ubx_id << " - PL: ";
-    //for (auto i : payload) std::cout << i;
-    //std::cout << " - " << ubx_chk_A << ':' << ubx_chk_B << std::endl;
-
+        found = true;
+        printf("%02x - %02x:%02x - %02x:%02x - PL: %s - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, payload, ubx_chk_A, ubx_chk_B);
+      }
+      else printf("align_B not valid: %02x:%02x\n", align_A, align_B);
+    }
+    else printf("align_A not valid: %02x:%02x\n", align_A, align_B);
   }
 }
 
@@ -429,7 +422,7 @@ private:
 public:
   MetasystemData();
   std::vector<std::vector<float>> acc_v;
-  void readData(std::ifstream& inputfile);
+  void readData(std::ifstream& inputfile, size_t sampleCounter);
   void readDataS(TimeoutSerial& serial, size_t sampleCounter);
 };
 
@@ -439,18 +432,19 @@ MetasystemData::MetasystemData() {
 }
 
 
-void MetasystemData::readData(std::ifstream& inputfile) {
+void MetasystemData::readData(std::ifstream& inputfile, size_t sampleCounter) {
   unsigned char buffer;
   size_t internal_counter = 0, external_counter = 0;
   std::vector<float> acc(3);
   raw data[3];
 
-  while (!inputfile.eof()) {
+  while (acc_v.size() < sampleCounter) {
     inputfile.read((char*)&buffer, sizeof(buffer));
     if (buffer != align_char) {
       data[external_counter].value_ch[internal_counter++] = buffer;
       if (internal_counter == 2) {
         data[external_counter].value_sh = (data[external_counter].value_ush << 1);
+        //if (data[external_counter].value_ch[1] & 0x4000) data[external_counter].value_ch[1] |= 0x8000; // PaoloPariani mod, not working
         internal_counter = 0;
         external_counter++;
       }
@@ -463,7 +457,7 @@ void MetasystemData::readData(std::ifstream& inputfile) {
     if (external_counter == 3) {
       inputfile.read((char*)&buffer, sizeof(buffer));
       if (buffer == align_char) {
-        for (size_t i = 0; i < acc.size(); i++) acc[i] = data[i].value_sh;
+        for (size_t i = 0; i < acc.size(); i++) acc[i] = ((float)data[i].value_sh) / 1e3f;
         acc_v.push_back(acc);
       }
       else {
@@ -730,7 +724,7 @@ public:
   unsigned char speed;
   std::int32_t lat, lon;
   std::vector<std::vector<float>> data_v;
-  void readData(std::ifstream& inputfile);
+  void readData(std::ifstream& inputfile, size_t sampleCounter);
   void readDataS(TimeoutSerial& serial, size_t sampleCounter);
 };
 
@@ -740,12 +734,13 @@ OctoData::OctoData(){
   header_gps[0] = 'G'; header_gps[1] = 'P'; header_gps[2] = 'S';
 };
 
-void OctoData::readData(std::ifstream& inputfile) {
+void OctoData::readData(std::ifstream& inputfile, size_t sampleCounter) {
   unsigned char buffer;
   std::vector<float> dato(3);
 
-  while (!inputfile.eof()) {
+  while (data_v.size() < sampleCounter) {
     inputfile.read((char*)&buffer, sizeof(buffer));
+
 
     if (buffer == header_acc[0] || buffer == header_gyr[0]) {
       inputfile.read((char*)&buffer, sizeof(buffer));
@@ -783,8 +778,6 @@ void OctoData::readData(std::ifstream& inputfile) {
         }
       }
     }
-    else
-      printf("Unrecognized type: %02x\n", buffer);
   }
 }
 

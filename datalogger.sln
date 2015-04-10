@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "serial_reader", "serial_rea
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "serial_viewer", "serial_viewer\serial_viewer.vcxproj", "{76AB0E95-11C0-448B-809E-F1F97424D76E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "file_converter", "file_converter\file_converter.vcxproj", "{B68A61DF-31B7-485E-BA8C-BC01212D42FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +23,10 @@ Global
 		{76AB0E95-11C0-448B-809E-F1F97424D76E}.Debug|Win32.Build.0 = Debug|Win32
 		{76AB0E95-11C0-448B-809E-F1F97424D76E}.Release|Win32.ActiveCfg = Release|Win32
 		{76AB0E95-11C0-448B-809E-F1F97424D76E}.Release|Win32.Build.0 = Release|Win32
+		{B68A61DF-31B7-485E-BA8C-BC01212D42FA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B68A61DF-31B7-485E-BA8C-BC01212D42FA}.Debug|Win32.Build.0 = Debug|Win32
+		{B68A61DF-31B7-485E-BA8C-BC01212D42FA}.Release|Win32.ActiveCfg = Release|Win32
+		{B68A61DF-31B7-485E-BA8C-BC01212D42FA}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

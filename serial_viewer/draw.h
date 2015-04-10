@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../serial_reader/datalogger.h"
+#include "datalogger.h"
 #include <cmath>
 #include <FL/gl.h>
 #include <FL/Fl_Slider.H>

@@ -16,8 +16,10 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
+
+
 #include "datalogger.h"
-#include "serial_tools.hpp"
+#include "serial_tools.h"
 #include "swap_tools.hpp"
 #include "data_tools.hpp"
 
@@ -555,8 +557,6 @@ int main(int argc, char ** argv)
     GPSData dato;
     SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
 
-    logfile.open("n_data.log", std::ofstream::out);
-
     std::vector<boost::regex> patterns;
     //std::vector<std::string> pattern_names({ "GSV", "GLL", "RMC", "VTG", "GGA", "GSA" });
     std::vector<std::string> pattern_names({ "RMC" });
@@ -676,7 +676,7 @@ int main(int argc, char ** argv)
   }
 
 
-
+  logfile.close();
 
   return 0;
 }
