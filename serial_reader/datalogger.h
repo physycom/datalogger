@@ -29,6 +29,7 @@
 
 //#define COMMA_SEPARATION_VALUE ','
 #define COMMA_SEPARATION_VALUE ';'
+#define TIME_SEPARATION_VALUE ':'
 
 #define DIMENSIONE_MAX 1000
 #ifdef _WIN32
@@ -37,6 +38,7 @@
 #endif
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #define MAJOR_VERSION 0
@@ -77,6 +79,7 @@
 #include <iomanip>
 #include <bitset>
 #include <vector>
+#include <ctime>
 
 #if defined(USE_HOST_MEMORY)
 #ifdef _WIN32

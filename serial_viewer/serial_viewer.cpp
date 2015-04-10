@@ -37,7 +37,6 @@ int main(int argc, char **argv) {
   //std::cin.sync();
   //std::cin.ignore();
 
-
   CreateMyWindow();
   Fl::add_idle(idle_cb, 0);
   Fl::run();

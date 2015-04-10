@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
   std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA", "MagnetiMarelli_v2" });
 
   std::cout << "Datalogger v" << MAJOR_VERSION << "." << MINOR_VERSION << std::endl;
-  std::cout << "Usage: %s -f [filename] -t [box_type]" << std::endl;
+  std::cout << "Usage: %s -f [filename] -t [box_type] -h (shows help and quit)" << std::endl;
   std::cout << "new: general fixes and improvements\n" << std::endl;
 
 
@@ -46,6 +46,8 @@ int main(int argc, char ** argv)
         case 't':
           systeminfo = atoi(argv[++i]);
           break;
+        case 'h':
+          exit(777);
         default:    // no match...
           std::cout << argv[i] << " not recognized" << std::endl;
           break;
@@ -97,7 +99,7 @@ int main(int argc, char ** argv)
   {
     InfomobilityData dato;
 
-    datafile.open(filename, std::ifstream::in | std::ios_base::binary);
+    datafile.open(filename.c_str(), std::ios::in | std::ios::binary);
     if (datafile.fail()) {
       std::cout << "Unable to open file" << std::endl;
       std::exit(5);
@@ -117,9 +119,15 @@ int main(int argc, char ** argv)
         }
 
         dato.loadheader(datafile);
+        if (datafile.eof()) break;
         dato.allocatePayload(dato.getPayloadSize());
+
         dato.readPayload(datafile);
+        if (datafile.eof()) break;
+
         dato.loadfooter(datafile);
+        if (datafile.eof()) break;
+
         dato.checkfooter();
         //dato.printheader();
         //dato.printfooter();
@@ -156,7 +164,7 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 2) //MagnetiMarelli
   {
-    datafile.open(filename, std::ifstream::in);
+    datafile.open(filename.c_str(), std::ios::in);
     if (datafile.fail()) {
       std::cout << "Unable to open file" << std::endl;
       std::exit(5);
@@ -178,6 +186,7 @@ int main(int argc, char ** argv)
         }
 
         std::getline(datafile, sst);
+        if (datafile.eof()) break;
 
         if (sst[0] == '{')
         {
@@ -222,7 +231,7 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 3) // Texa
   {
-    datafile.open(filename, std::ifstream::in);
+    datafile.open(filename.c_str(), std::ios::in);
     if (datafile.fail()) {
       std::cout << "Unable to open file" << std::endl;
       std::exit(5);
@@ -244,6 +253,7 @@ int main(int argc, char ** argv)
         }
 
         std::getline(datafile, sst);
+        if (datafile.eof()) break;
 
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
         if (strs.size() == 21) navdata.setInertial_s(&strs[strs.size() - 9]);
@@ -272,7 +282,7 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 4) // ViaSat
   {
-    datafile.open(filename, std::ifstream::in);
+    datafile.open(filename.c_str(), std::ios::in);
     if (datafile.fail()) {
       std::cout << "Unable to open file" << std::endl;
       std::exit(5);
@@ -294,6 +304,7 @@ int main(int argc, char ** argv)
         }
 
         std::getline(datafile, sst);
+        if (datafile.eof()) break;
 
         if (sst[1] == 'G')
         {
@@ -344,7 +355,7 @@ int main(int argc, char ** argv)
   {
     MetasystemData dato;
     datafile.open(filename.c_str(), std::ios::in | std::ios::binary);
-    if (!datafile) {
+    if (datafile.fail()) {
       std::cout << "Unable to open file" << std::endl;
       std::exit(5);
     }
@@ -363,6 +374,7 @@ int main(int argc, char ** argv)
         }
 
         dato.readData(datafile, 1);
+        if (datafile.eof()) break;
 
         for (size_t i = 0; i < dato.acc_v.size(); i++) {
           navdata.setAcc(&dato.acc_v[i][0]);
@@ -396,7 +408,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 6) // UBX
   {
     GPSData dato;
-    datafile.open(filename, std::ifstream::in | std::ios_base::binary);
+    datafile.open(filename.c_str(), std::ios::in | std::ios::binary);
     if (datafile.fail()) {
       std::cout << "Unable to open file" << std::endl;
       std::exit(5);
@@ -416,7 +428,7 @@ int main(int argc, char ** argv)
       }
 
         dato.readData(datafile);
-
+        if (datafile.eof()) break;
 #ifdef WRITE_ON_STDOUT
         std::cout << navdata.to_string() << std::endl;
 #else
@@ -435,7 +447,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 7) // Octo
   {
     OctoData dato;
-    datafile.open(filename, std::ifstream::in | std::ios_base::binary);
+    datafile.open(filename.c_str(), std::ios::in | std::ios::binary);
     if (datafile.fail()) {
       std::cout << "Unable to open file" << std::endl;
       std::exit(5);
@@ -455,6 +467,7 @@ int main(int argc, char ** argv)
         }
 
         dato.readData(datafile, 1);
+        if (datafile.eof()) break;
 
         double data_temp[3];
         switch (dato.type){
@@ -502,7 +515,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 8) // NMEA
   {
     GPSData dato;
-    datafile.open(filename, std::ifstream::in);
+    datafile.open(filename.c_str(), std::ios::in);
     if (datafile.fail()) {
       std::cout << "Unable to open file" << std::endl;
       std::exit(5);
@@ -533,6 +546,8 @@ int main(int argc, char ** argv)
         }
 
         std::getline(datafile, sst);
+        if (datafile.eof()) break;
+
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(","));
         found = false;
         for (auto i : patterns) if (boost::regex_search(strs[0], i)) found = true;
@@ -556,7 +571,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 9) // MagnetiMarelli_v2 //Octo-clone
   {
     OctoData dato;
-    datafile.open(filename, std::ifstream::in | std::ios_base::binary);
+    datafile.open(filename.c_str(), std::ios::in | std::ios::binary);
     if (datafile.fail()) {
       std::cout << "Unable to open file" << std::endl;
       std::exit(5);
@@ -576,6 +591,7 @@ int main(int argc, char ** argv)
         }
 
         dato.readData(datafile, 1);
+        if (datafile.eof()) break;
 
         double data_temp[3];
         switch (dato.type){

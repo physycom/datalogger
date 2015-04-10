@@ -23,7 +23,7 @@ class NavData{
   std::vector<std::string> nav_data; // {0=time, 1=ax, 2=ay, 3=az, 4=gx, 5=gy, 6=gz, 7=lat, 8=lon, 9=alt, 10=speed, 11=heading, 12=qlt, 13=HDOP}
 public:
   NavData();
-  void setTime(std::string date, std::string hour);
+  void setTime(time_t);
   std::string getTime();
 
   void setAcc_s(std::string * acc_data);
@@ -84,6 +84,13 @@ public:
 NavData::NavData(){
   nav_data.resize(POS_COUNT);
 }
+
+void NavData::setTime(time_t tnow){
+  struct tm * now = localtime(&tnow);
+  std::stringstream date;
+  date << now->tm_year + 1900 << TIME_SEPARATION_VALUE << (now->tm_mon + 1) << TIME_SEPARATION_VALUE << now->tm_mday << TIME_SEPARATION_VALUE << now->tm_hour << TIME_SEPARATION_VALUE << now->tm_min << TIME_SEPARATION_VALUE << now->tm_sec;
+  nav_data[POS_TIME] = date.str();
+};
 
 void NavData::setAcc_s(std::string * acc_data){
   for (int i = 0; i < 3; i++) nav_data[i + POS_AX] = acc_data[i];
@@ -310,22 +317,31 @@ void GPSData::readData(std::ifstream& inputfile)
 
   while (!found) {
     inputfile.read((char*)&buffer, sizeof(buffer));
+    if (inputfile.eof()) break;
+
     if (buffer == align_A) {
       inputfile.read((char*)&buffer, sizeof(buffer));
+      if (inputfile.eof()) break;
       if (buffer == align_B) {
         inputfile.read((char*)&ubx_class, sizeof(ubx_class));
+        if (inputfile.eof()) break;
         inputfile.read((char*)&ubx_id, sizeof(ubx_id));
+        if (inputfile.eof()) break;
         inputfile.read((char*)&ubx_length, sizeof(ubx_length));
+        if (inputfile.eof()) break;
 
         char * temp = new char[ubx_length];
         payload.resize(ubx_length);
         inputfile.read((char*)&temp, ubx_length*sizeof(char));
+        if (inputfile.eof()) break;
         size_t ii = 0;
         for (auto i : payload) i = temp[ii++];
         delete[] temp;
 
         inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+        if (inputfile.eof()) break;
         inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+        if (inputfile.eof()) break;
 
         found = true;
         printf("%02x - %02x:%02x - %02x:%02x - PL: %s - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, payload, ubx_chk_A, ubx_chk_B);
@@ -440,6 +456,9 @@ void MetasystemData::readData(std::ifstream& inputfile, size_t sampleCounter) {
 
   while (acc_v.size() < sampleCounter) {
     inputfile.read((char*)&buffer, sizeof(buffer));
+
+    if (inputfile.eof()) break;
+
     if (buffer != align_char) {
       data[external_counter].value_ch[internal_counter++] = buffer;
       if (internal_counter == 2) {
@@ -454,8 +473,10 @@ void MetasystemData::readData(std::ifstream& inputfile, size_t sampleCounter) {
       external_counter = 0;
     }
 
+
     if (external_counter == 3) {
       inputfile.read((char*)&buffer, sizeof(buffer));
+      if (inputfile.eof()) break;
       if (buffer == align_char) {
         for (size_t i = 0; i < acc.size(); i++) acc[i] = ((float)data[i].value_sh) / 1e3f;
         acc_v.push_back(acc);
@@ -561,11 +582,16 @@ void InfomobilityData::loadheader(std::ifstream& inputfile)
   while (h1 != 0xB5 || h2 != 0x62)
   {
     inputfile.read(&h1, sizeof(h1));
+    if (inputfile.eof()) break;
     inputfile.read(&h2, sizeof(h2));
+    if (inputfile.eof()) break;
   }
   inputfile.read(&hclass, sizeof(hclass));
+  if (inputfile.eof()) return;
   inputfile.read(&hid, sizeof(hid));
+  if (inputfile.eof()) return;
   inputfile.read((char*)&hlength, sizeof(hlength));
+  if (inputfile.eof()) return;
   switch (hlength)
   {
   case 14:
@@ -624,7 +650,9 @@ void InfomobilityData::printfooter()
 void InfomobilityData::loadfooter(std::ifstream& inputfile)
 {
   inputfile.read(&f1, sizeof(f1));
+  if (inputfile.eof()) return;
   inputfile.read(&f2, sizeof(f2));
+  if (inputfile.eof()) return;
 }
 
 void InfomobilityData::loadfooterS(TimeoutSerial& serial)
@@ -646,6 +674,7 @@ void InfomobilityData::deAllocatePayload()
 void InfomobilityData::readPayload(std::ifstream& inputfile)
 {
   inputfile.read(payload, sizeof(payload));
+  if (inputfile.eof()) return;
 }
 
 void InfomobilityData::readPayloadS(TimeoutSerial& serial)
@@ -740,23 +769,30 @@ void OctoData::readData(std::ifstream& inputfile, size_t sampleCounter) {
 
   while (data_v.size() < sampleCounter) {
     inputfile.read((char*)&buffer, sizeof(buffer));
+    if (inputfile.eof()) break;
 
 
     if (buffer == header_acc[0] || buffer == header_gyr[0]) {
       inputfile.read((char*)&buffer, sizeof(buffer));
+      if (inputfile.eof()) break;
       if (buffer == header_acc[1] || buffer == header_gyr[1]) {
         inputfile.read((char*)&buffer, sizeof(buffer));
+        if (inputfile.eof()) break;
         if (buffer == header_acc[2]) {
           type = '1';
           inputfile.read((char*)&id, sizeof(id));
+          if (inputfile.eof()) break;
           inputfile.read((char*)acc_data, 3 * sizeof(std::int16_t));
+          if (inputfile.eof()) break;
           for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
           data_v.push_back(dato);
         }
         else if (buffer == header_gyr[2]) {
           type = '2';
           inputfile.read((char*)&id, sizeof(id));
+          if (inputfile.eof()) break;
           inputfile.read((char*)gyr_data, 3 * sizeof(std::int16_t));
+          if (inputfile.eof()) break;
           for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
           data_v.push_back(dato);
         }
@@ -764,17 +800,26 @@ void OctoData::readData(std::ifstream& inputfile, size_t sampleCounter) {
     }
     else if (buffer == header_gps[0]) {
       inputfile.read((char*)&buffer, sizeof(buffer));
+      if (inputfile.eof()) break;
       if (buffer == header_gps[1]) {
         inputfile.read((char*)&buffer, sizeof(buffer));
+        if (inputfile.eof()) break;
         if (buffer == header_gps[2]) {
           type = '3';
           inputfile.read((char*)&id, sizeof(id));
+          if (inputfile.eof()) break;
           inputfile.read((char*)&timestamp, sizeof(timestamp));
+          if (inputfile.eof()) break;
           inputfile.read((char*)&nav, sizeof(nav));
+          if (inputfile.eof()) break;
           inputfile.read((char*)&heading, sizeof(heading));
+          if (inputfile.eof()) break;
           inputfile.read((char*)&speed, sizeof(speed));
+          if (inputfile.eof()) break;
           inputfile.read((char*)&lat, sizeof(lat));
+          if (inputfile.eof()) break;
           inputfile.read((char*)&lon, sizeof(lon));
+          if (inputfile.eof()) break;
         }
       }
     }

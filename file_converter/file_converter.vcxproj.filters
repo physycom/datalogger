@@ -14,7 +14,7 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Source Files\boost">
-      <UniqueIdentifier>{0c8135a7-5aaf-47e1-8708-e7ab7ad33b68}</UniqueIdentifier>
+      <UniqueIdentifier>{9914606e-d25d-444d-908f-922f7e89f60a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
 {
   size_t systeminfo = 0;
   std::cout << "Datalogger v" << MAJOR_VERSION << "." << MINOR_VERSION << std::endl;
-  std::cout << "Usage: %s -p [serial_port] -b [baudrate] -t [box_type]" << std::endl;
+  std::cout << "Usage: " << argv[0] << " -h -p [serial_port] -b [baudrate] -t [box_type] -h (shows help and quit)" << std::endl;
   std::cout << "\t- [serial_port] serial port name (COMx on WIN, /dev/ttyUSBx on UNIX)" << std::endl;
   std::cout << "\t- [baudrate] " << std::endl;
   std::cout << "\t- [box_type] " << std::endl;
@@ -54,6 +54,8 @@ int main(int argc, char ** argv)
         case 't':
           systeminfo = atoi(argv[++i]);
           break;
+        case 'h':
+          exit(777);
         default:    // no match...
           std::cout << argv[i] << " not recognized" << std::endl;
           break;
@@ -133,6 +135,7 @@ int main(int argc, char ** argv)
   size_t counter = 0;
   bool exit = false;
   std::ofstream logfile;
+  time_t tnow;
 
   COMport portacom;
   //portacom.set_portname_stdin();
@@ -228,12 +231,12 @@ int main(int argc, char ** argv)
         }
 
         sst = sserial.readLine();
-        //sst = serial.readStringUntil("\n");
-
+        tnow = time(NULL);
 
         if (sst[0] == '{')
         {
           boost::algorithm::split(strs, sst, boost::algorithm::is_any_of("{}; "));
+          navdata.setTime(tnow);
           navdata.setAcc_s(&strs[0]);
 #ifdef WRITE_ON_STDOUT
           std::cout << navdata.to_string() << std::endl;
@@ -246,6 +249,7 @@ int main(int argc, char ** argv)
           boost::algorithm::split(strs, sst, boost::algorithm::is_any_of("; "));
           double gyr_data[3];
           for (size_t i = 0; i < strs.size(); i++) gyr_data[i] = atof(strs[i].c_str()) / 256.;
+          navdata.setTime(tnow);
           navdata.setGyr(gyr_data);
 #ifdef WRITE_ON_STDOUT
           std::cout << navdata.to_string() << std::endl;
@@ -296,9 +300,13 @@ int main(int argc, char ** argv)
         }
 
         sst = sserial.readLine();
+        tnow = time(NULL);
 
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
-        if (strs.size() == 21) navdata.setInertial_s(&strs[strs.size() - 9]);
+        if (strs.size() == 21 && strs[0] != "Index") {
+          navdata.setInertial_s(&strs[strs.size() - 9]);
+          navdata.setTime(tnow);
+        }
 
 #ifdef WRITE_ON_STDOUT
         std::cout << navdata.to_string() << std::endl;
@@ -346,12 +354,14 @@ int main(int argc, char ** argv)
         }
 
         sst = sserial.readLine();
+        tnow = time(NULL);
 
         if (sst[1] == 'G')
         {
           boost::algorithm::split(strs, sst, boost::algorithm::is_any_of("{}; "));
 
-          navdata.setAcc_s(&strs[0]);
+          navdata.setGyr_s(&strs[0]);
+          navdata.setTime(tnow);
 
 #ifdef WRITE_ON_STDOUT
           std::cout << navdata.to_string() << std::endl;
@@ -368,6 +378,7 @@ int main(int argc, char ** argv)
           double data_temp[3];
           for (size_t i = 0; i < 3; i++) data_temp[i] = atof(strs[i].c_str()) / 1e3;
           navdata.setAcc(data_temp);
+          navdata.setTime(tnow);
 
 #ifdef WRITE_ON_STDOUT
           std::cout << navdata.to_string() << std::endl;
@@ -416,9 +427,11 @@ int main(int argc, char ** argv)
         }
 
         dato.readDataS(serial, 1);
+        tnow = time(NULL);
 
         for (size_t i = 0; i < dato.acc_v.size(); i++) {
           navdata.setAcc(&dato.acc_v[i][0]);
+          navdata.setTime(tnow);
 
 #ifdef WRITE_ON_STDOUT
           std::cout << navdata.to_string() << std::endl;
@@ -469,6 +482,7 @@ int main(int argc, char ** argv)
         }
 
         dato.readDataS(serial);
+        tnow = time(NULL);
 
 #ifdef WRITE_ON_STDOUT
         std::cout << navdata.to_string() << std::endl;
@@ -505,16 +519,19 @@ int main(int argc, char ** argv)
         }
 
         dato.readDataS(serial, 1);
+        tnow = time(NULL);
 
         double data_temp[3];
         switch (dato.type){
         case '1':
           for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3;
           navdata.setAcc(data_temp);
+          navdata.setTime(tnow);
           break;
         case '2':
           for (size_t i = 0; i < 3; i++) data_temp[i] = dato.gyr_data[i] / 1e3;
           navdata.setGyr(data_temp);
+          navdata.setTime(tnow);
           break;
         case '3':
           // TODO
@@ -582,6 +599,8 @@ int main(int argc, char ** argv)
         }
 
         sst = sserial.readLine();
+        tnow = time(NULL);
+
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(","));
         found = false;
         for (auto i : patterns) if (boost::regex_search(strs[0], i)) found = true;
@@ -622,16 +641,19 @@ int main(int argc, char ** argv)
         }
 
         dato.readDataS(serial, 1);
+        tnow = time(NULL);
 
         double data_temp[3];
         switch (dato.type){
         case '1':
           for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3;
           navdata.setAcc(data_temp);
+          navdata.setTime(tnow);
           break;
         case '2':
           for (size_t i = 0; i < 3; i++) data_temp[i] = dato.gyr_data[i] / 1e3;
           navdata.setGyr(data_temp);
+          navdata.setTime(tnow);
           break;
         case '3':
           // TODO
