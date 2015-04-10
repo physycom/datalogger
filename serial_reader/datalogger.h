@@ -37,7 +37,7 @@
 #endif
 
 #define MAJOR_VERSION 0
-#define MINOR_VERSION 9
+#define MINOR_VERSION 10
 
 
 #define EPOCH_TIME_2000 946684800

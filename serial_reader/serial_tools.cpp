@@ -19,8 +19,9 @@
 #include "serial_tools.h"
 
 
-  TimeoutSerial::ReadSetupParameters::ReadSetupParameters() : fixedSize(false), delim(""), data(0), size(0) {}
-
+TimeoutSerial::ReadSetupParameters::ReadSetupParameters() : fixedSize(false), delim(""), data(0), size(0) {}
+TimeoutSerial::ReadSetupParameters::ReadSetupParameters(const std::string& delim) : fixedSize(false), delim(delim), data(0), size(0) { }
+TimeoutSerial::ReadSetupParameters::ReadSetupParameters(char *data, size_t size) : fixedSize(true), delim(""), data(data), size(size) { }
 
 SimpleSerial::SimpleSerial(std::string port, unsigned int baud_rate) : io(), serial(io, port)
 {
