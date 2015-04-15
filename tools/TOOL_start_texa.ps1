@@ -1,4 +1,4 @@
-$port= new-Object System.IO.Ports.SerialPort COM26,115200,None,8,one
+$port= new-Object System.IO.Ports.SerialPort COM35,115200,None,8,one
 $port.Open()
 $port.WriteLine("")
 Start-Sleep -m 50 

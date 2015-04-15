@@ -16,6 +16,16 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
+int is_big_endian()
+{
+  union {
+    uint32_t i;
+    char c[4];
+  } bint = { 0x01020304 };
+
+  return bint.c[0] == 1;
+}
+
 void swap_endian_s(short* in_s, int n)
 {
   int i;
@@ -67,4 +77,3 @@ void swap_endian_f(float* in_f, int n)
     in_f[i] = x.fmio;
   }
 }
-
