@@ -1,20 +1,8 @@
-// Copyright 2014, 2015 Stefano Sinigardi, Alessandro Fabbri
-// for any question, please mail stefano.sinigardi@gmail.com
+/*
+* Authors: Federico Terraneo, Stefano Sinigardi, Alessandro Fabbri
+* Distributed under the Boost Software License, Version 1.0.
+*/
 
-/************************************************************************
-* This program is free software: you can redistribute it and/or modify  *
-* it under the terms of the GNU General Public License as published by  *
-* the Free Software Foundation, either version 3 of the License, or     *
-* (at your option) any later version.                                   *
-*                                                                       *
-* This program is distributed in the hope that it will be useful,       *
-* but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-* GNU General Public License for more details.                          *
-*                                                                       *
-* You should have received a copy of the GNU General Public License     *
-* along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-************************************************************************/
 
 #include "serial_tools.h"
 
@@ -54,7 +42,7 @@ std::string SimpleSerial::readLine()
 }
 
 timeout_exception::timeout_exception(const std::string& arg) : runtime_error(arg) {}
-
+TimeoutException::TimeoutException(const std::string& arg) : failure(arg) {}
 
 TimeoutSerial::TimeoutSerial(const std::string& devname, unsigned int baud_rate,
   boost::asio::serial_port_base::parity opt_parity,
@@ -145,7 +133,7 @@ void TimeoutSerial::read(char *data, size_t size)
     case resultSuccess:
       timer.cancel();
       return;
-    case resultTimeoutExpired:
+    case resultTimeout:
       port.cancel();
       throw(timeout_exception("Timeout expired"));
     case resultError:
@@ -205,7 +193,7 @@ std::string TimeoutSerial::readStringUntil(const std::string& delim)
       is.ignore(delim.size());//Remove delimiter from stream
       return result;
     }
-    case resultTimeoutExpired:
+    case resultTimeout:
       port.cancel();
       throw(timeout_exception("Timeout expired"));
     case resultError:
@@ -235,7 +223,7 @@ void TimeoutSerial::performReadSetup(const ReadSetupParameters& param)
 
 void TimeoutSerial::timeoutExpired(const boost::system::error_code& error)
 {
-  if (!error && result == resultInProgress) result = resultTimeoutExpired;
+  if (!error && result == resultInProgress) result = resultTimeout;
 }
 
 void TimeoutSerial::readCompleted(const boost::system::error_code& error,
@@ -298,3 +286,212 @@ int COMport::get_baudrate()
 {
   return baudrate;
 }
+
+
+SerialOptions::SerialOptions() : device(), baudrate(9600), timeout(seconds(0)), parity(noparity), csize(8), flow(noflow), stop(one) {}
+SerialOptions::SerialOptions(const std::string& device, unsigned int baudrate,time_duration timeout = seconds(0), Parity parity = noparity, unsigned char csize = 8, FlowControl flow = noflow, StopBits stop = one) : device(device), baudrate(baudrate), timeout(timeout), parity(parity), csize(csize), flow(flow), stop(stop) {}
+
+void SerialOptions::setDevice(const std::string& device) { this->device = device; }
+std::string SerialOptions::getDevice() const { return this->device; }
+
+/**
+* Setter and getter for baudrate
+*/
+void SerialOptions::setBaudrate(unsigned int baudrate) { this->baudrate = baudrate; }
+unsigned int SerialOptions::getBaudrate() const { return this->baudrate; }
+
+/**
+* Setter and getter for timeout
+*/
+void SerialOptions::setTimeout(time_duration timeout) { this->timeout = timeout; }
+boost::posix_time::time_duration SerialOptions::getTimeout() const { return this->timeout; }
+
+/**
+* Setter and getter for parity
+*/
+void SerialOptions::setParity(Parity parity) { this->parity = parity; }
+SerialOptions::Parity SerialOptions::getParity() const { return this->parity; }
+
+/**
+* Setter and getter character size
+*/
+void SerialOptions::setCsize(unsigned char csize) { this->csize = csize; }
+unsigned char SerialOptions::getCsize() const { return this->csize; }
+
+/**
+* Setter and getter flow control
+*/
+void SerialOptions::setFlowControl(FlowControl flow) { this->flow = flow; }
+SerialOptions::FlowControl SerialOptions::getFlowControl() const { return this->flow; }
+
+/**
+* Setter and getter for stop bits
+*/
+void SerialOptions::setStopBits(StopBits stop) { this->stop = stop; }
+SerialOptions::StopBits SerialOptions::getStopBits() const { return this->stop; }
+
+
+
+SerialDeviceImpl::SerialDeviceImpl(const SerialOptions& options)
+  : io(), port(io), timer(io), timeout(options.getTimeout()),
+  result(resultError), bytesTransferred(0), readBuffer(0),
+  readBufferSize(0)
+{
+  try {
+    //For this code to work, there should always be a timeout, so the
+    //request for no timeout is translated into a very long timeout
+    if (timeout == boost::posix_time::seconds(0)) timeout = boost::posix_time::hours(100000);
+
+    port.open(options.getDevice());//Port must be open before setting option
+
+    port.set_option(boost::asio::serial_port_base::baud_rate(options.getBaudrate()));
+
+    switch (options.getParity())
+    {
+    case SerialOptions::odd:
+      port.set_option(boost::asio::serial_port_base::parity(
+        boost::asio::serial_port_base::parity::odd));
+      break;
+    case SerialOptions::even:
+      port.set_option(boost::asio::serial_port_base::parity(
+        boost::asio::serial_port_base::parity::even));
+      break;
+    default:
+      port.set_option(boost::asio::serial_port_base::parity(
+        boost::asio::serial_port_base::parity::none));
+      break;
+    }
+
+    port.set_option(boost::asio::serial_port_base::character_size(options.getCsize()));
+
+    switch (options.getFlowControl())
+    {
+    case SerialOptions::hardware:
+      port.set_option(boost::asio::serial_port_base::flow_control(
+        boost::asio::serial_port_base::flow_control::hardware));
+      break;
+    case SerialOptions::software:
+      port.set_option(boost::asio::serial_port_base::flow_control(
+        boost::asio::serial_port_base::flow_control::software));
+      break;
+    default:
+      port.set_option(boost::asio::serial_port_base::flow_control(
+        boost::asio::serial_port_base::flow_control::none));
+      break;
+    }
+
+    switch (options.getStopBits())
+    {
+    case SerialOptions::onepointfive:
+      port.set_option(boost::asio::serial_port_base::stop_bits(
+        boost::asio::serial_port_base::stop_bits::onepointfive));
+      break;
+    case SerialOptions::two:
+      port.set_option(boost::asio::serial_port_base::stop_bits(
+        boost::asio::serial_port_base::stop_bits::two));
+      break;
+    default:
+      port.set_option(boost::asio::serial_port_base::stop_bits(
+        boost::asio::serial_port_base::stop_bits::one));
+      break;
+    }
+  }
+  catch (std::exception& e)
+  {
+    throw std::ios::failure(e.what());
+  }
+}
+
+
+
+SerialDevice::SerialDevice(const SerialOptions& options)
+  : pImpl(new SerialDeviceImpl(options)) {}
+
+
+std::streamsize SerialDevice::read(char *s, std::streamsize n)
+{
+  pImpl->result = resultInProgress;
+  pImpl->bytesTransferred = 0;
+  pImpl->readBuffer = s;
+  pImpl->readBufferSize = n;
+
+  pImpl->timer.expires_from_now(pImpl->timeout);
+  pImpl->timer.async_wait(boost::bind(&SerialDevice::timeoutExpired, this,
+    boost::asio::placeholders::error));
+
+  pImpl->port.async_read_some(boost::asio::buffer(s, n), boost::bind(&SerialDevice::readCompleted,
+    this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+
+  for (;;)
+  {
+    pImpl->io.run_one();
+    switch (pImpl->result)
+    {
+    case resultSuccess:
+      pImpl->timer.cancel();
+      return pImpl->bytesTransferred;
+    case resultTimeout:
+      pImpl->port.cancel();
+      throw(TimeoutException("Timeout expired"));
+    case resultError:
+      pImpl->port.cancel();
+      pImpl->timer.cancel();
+      throw(std::ios_base::failure("Error while reading"));
+    default:
+      //if resultInProgress remain in the loop
+      break;
+    }
+  }
+}
+
+std::streamsize SerialDevice::write(const char *s, std::streamsize n)
+{
+  try {
+    boost::asio::write(pImpl->port, boost::asio::buffer(s, n));
+  }
+  catch (std::exception& e)
+  {
+    throw(std::ios_base::failure(e.what()));
+  }
+  return n;
+}
+
+void SerialDevice::timeoutExpired(const boost::system::error_code& error)
+{
+  if (!error && pImpl->result == resultInProgress) pImpl->result = resultTimeout;
+}
+
+void SerialDevice::readCompleted(const boost::system::error_code& error,
+  const size_t bytesTransferred)
+{
+  if (!error)
+  {
+    pImpl->result = resultSuccess;
+    pImpl->bytesTransferred = bytesTransferred;
+    return;
+  }
+
+  //In case a asynchronous operation is cancelled due to a timeout,
+  //each OS seems to have its way to react.
+#ifdef _WIN32
+  if (error.value() == 995) return; //Windows spits out error 995
+#elif defined(__APPLE__)
+  if (error.value() == 45)
+  {
+    //Bug on OS X, it might be necessary to repeat the setup
+    //http://osdir.com/ml/lib.boost.asio.user/2008-08/msg00004.html
+    pImpl->port.async_read_some(
+      asio::buffer(pImpl->readBuffer, pImpl->readBufferSize),
+      boost::bind(&SerialDevice::readCompleted, this, boost::asio::placeholders::error,
+      boost::asio::placeholders::bytes_transferred));
+    return;
+  }
+#else //Linux
+  if (error.value() == 125) return; //Linux outputs error 125
+#endif
+
+  pImpl->result = resultError;
+}
+
+
+

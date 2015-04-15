@@ -23,7 +23,6 @@
 #include "swap_tools.hpp"
 #include "data_tools.hpp"
 
-#include <boost/thread.hpp>  // due to sleep
 
 
 int main(int argc, char ** argv)
@@ -135,11 +134,12 @@ int main(int argc, char ** argv)
   std::ofstream logfile;
   time_t tnow;
 
-  COMport portacom;
-  //portacom.set_portname_stdin();
-  //portacom.set_baudrate_stdin();
-  portacom.set_portname(serial_port);
-  portacom.set_baudrate(baudrate);
+
+  SerialOptions portacom;
+  portacom.setDevice(serial_port);
+  portacom.setBaudrate(baudrate);
+  portacom.setTimeout(boost::posix_time::seconds(SERIAL_PORT_TIMEOUT_SECONDS));
+
 
   logfile.open(box_types[systeminfo - 1] + ".log", std::ofstream::out);
 
@@ -151,7 +151,7 @@ int main(int argc, char ** argv)
   if (systeminfo == 1) //Infomobility
   {
     InfomobilityData dato;
-    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
+    TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
     try {
@@ -211,7 +211,7 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 2) //MagnetiMarelli
   {
-    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
+    SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
 
     try {
       std::string sst;
@@ -280,7 +280,7 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 3) // Texa
   {
-    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
+    SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
 
     try {
       std::string sst;
@@ -334,7 +334,7 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 4) // ViaSat
   {
-    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
+    SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
 
     try {
       std::string sst;
@@ -408,7 +408,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 5) // MetaSystem
   {
     MetasystemData dato;
-    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
+    TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
     try {
@@ -463,7 +463,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 6) // UBX
   {
     GPSData dato;
-    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
+    TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
     try {
@@ -500,7 +500,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 7) // Octo
   {
     OctoData dato;
-    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
+    TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
     try {
@@ -570,7 +570,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 8) // NMEA
   {
     GPSData dato;
-    SimpleSerial sserial(portacom.get_portname(), portacom.get_baudrate());
+    SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
 
     std::vector<boost::regex> patterns;
     //std::vector<std::string> pattern_names({ "GSV", "GLL", "RMC", "VTG", "GGA", "GSA" });
@@ -622,7 +622,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 9) // MagnetiMarelli_v2 //Octo-clone
   {
     OctoData dato;
-    TimeoutSerial serial(portacom.get_portname(), portacom.get_baudrate());
+    TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
     try {

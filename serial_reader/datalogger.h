@@ -21,11 +21,10 @@
 #define USE_HOST_MEMORY
 //#define WRITE_ON_STDOUT
 
-#define USE_SERIAL_PORT
-//#define USE_BINARY_FILE
 
 #define ENABLE_SLEEP
 #define SLEEP_TIME 500
+#define SERIAL_PORT_TIMEOUT_SECONDS 3 
 
 //#define COMMA_SEPARATION_VALUE ','
 #define COMMA_SEPARATION_VALUE ';'
@@ -42,7 +41,7 @@
 #endif
 
 #define MAJOR_VERSION 0
-#define MINOR_VERSION 10
+#define MINOR_VERSION 11
 
 
 #define EPOCH_TIME_2000 946684800
@@ -70,6 +69,12 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
 #include <boost/regex.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/categories.hpp>
+#include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <boost/thread.hpp>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -80,6 +85,8 @@
 #include <bitset>
 #include <vector>
 #include <ctime>
+#include <stdexcept>
+
 
 #if defined(USE_HOST_MEMORY)
 #ifdef _WIN32

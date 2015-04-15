@@ -1,29 +1,13 @@
-// Copyright 2014, 2015 Stefano Sinigardi, Alessandro Fabbri
-// for any question, please mail stefano.sinigardi@gmail.com
+/*
+* Authors: Federico Terraneo, Stefano Sinigardi, Alessandro Fabbri
+* Distributed under the Boost Software License, Version 1.0.
+*/
 
-/************************************************************************
-* This program is free software: you can redistribute it and/or modify  *
-* it under the terms of the GNU General Public License as published by  *
-* the Free Software Foundation, either version 3 of the License, or     *
-* (at your option) any later version.                                   *
-*                                                                       *
-* This program is distributed in the hope that it will be useful,       *
-* but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-* GNU General Public License for more details.                          *
-*                                                                       *
-* You should have received a copy of the GNU General Public License     *
-* along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-************************************************************************/
 
 
 #pragma once
 
 #include "datalogger.h"
-#include <string>
-#include <iostream>
-
-
 
 class SimpleSerial
 {
@@ -63,6 +47,13 @@ public:
   timeout_exception(const std::string& arg);
 };
 
+class TimeoutException : public std::ios_base::failure
+{
+public:
+  TimeoutException(const std::string& arg);
+};
+
+
 /**
 * Serial port class, with timeout on read operations.
 */
@@ -81,7 +72,7 @@ public:
   * \throws boost::system::system_error if cannot open the
   * serial device
   */
-  TimeoutSerial::TimeoutSerial(const std::string& devname, unsigned int baud_rate,
+  TimeoutSerial(const std::string& devname, unsigned int baud_rate,
     boost::asio::serial_port_base::parity opt_parity =
     boost::asio::serial_port_base::parity(
     boost::asio::serial_port_base::parity::none),
@@ -221,18 +212,218 @@ private:
 
     //Using default copy constructor, operator=
 
-    bool fixedSize; ///< True if need to read a fixed number of parameters
-    std::string delim; ///< String end delimiter (valid if fixedSize=false)
-    char *data; ///< Pointer to data array (valid if fixedSize=true)
-    size_t size; ///< Array size (valid if fixedSize=true)
+    bool fixedSize;      /// True if need to read a fixed number of parameters
+    std::string delim;   /// String end delimiter (valid if fixedSize=false)
+    char *data;          /// Pointer to data array (valid if fixedSize=true)
+    size_t size;         /// Array size (valid if fixedSize=true)
   };
 
-  /**
+  /*
   * This member function sets up a read operation, both reading a specified
   * number of characters and reading until a delimiter string.
   */
   void performReadSetup(const ReadSetupParameters& param);
 
+  /*
+  * Callack called either when the read timeout is expired or canceled.
+  * If called because timeout expired, sets result to resultTimeoutExpired
+  */
+  void timeoutExpired(const boost::system::error_code& error);
+
+  /*
+  * Callback called either if a read complete or read error occurs
+  * If called because of read complete, sets result to resultSuccess
+  * If called because read error, sets result to resultError
+  */
+
+  void readCompleted(const boost::system::error_code& error,
+    const size_t bytesTransferred);
+
+
+  boost::asio::io_service io;               ///< Io service object
+  boost::asio::serial_port port;            ///< Serial port object
+  boost::asio::deadline_timer timer;        ///< Timer for timeout
+  boost::posix_time::time_duration timeout; ///< Read/write timeout
+  boost::asio::streambuf readData;          ///< Holds eventual read but not consumed
+  enum ReadResult result;                   ///< Used by read with timeout
+  size_t bytesTransferred;                  ///< Used by async read callback
+  ReadSetupParameters setupParameters;      ///< Global because used in the OSX fix
+};
+
+
+/**
+* Possible outcome of a read. Set by callbacks, read from main code
+*/
+enum ReadResult
+{
+  resultInProgress,
+  resultSuccess,
+  resultError,
+  resultTimeout
+};
+
+
+
+
+/**
+* This class contains all the options for a serial port.
+*/
+class SerialOptions
+{
+  typedef boost::posix_time::time_duration time_duration;
+  typedef boost::posix_time::seconds seconds;
+
+public:
+  ///Possible flow controls.
+  enum FlowControl { noflow, software, hardware };
+
+  ///Possible parities.
+  enum Parity { noparity, odd, even };
+
+  ///Possible stop bits.
+  enum StopBits { one, onepointfive, two };
+
+  /**
+  * Default constructor.
+  */
+  SerialOptions();
+
+  /**
+  * Constructor.
+  * \param device device name (/dev/ttyS0, /dev/ttyUSB0, COM1, ...)
+  * \param baudrate baudrate, like 9600, 115200 ...
+  * \param timeout timeout when reading, use zero to disable
+  * \param parity parity
+  * \param csize character size (5,6,7 or 8)
+  * \param flow flow control
+  * \param stop stop bits
+  *
+  */
+  SerialOptions(const std::string& device, unsigned int baudrate,
+    time_duration timeout = seconds(0), Parity parity = noparity,
+    unsigned char csize = 8, FlowControl flow = noflow, StopBits stop = one);
+
+  /**
+  * Setter and getter for device name
+  */
+  void setDevice(const std::string& device);
+  std::string getDevice() const;
+
+  /**
+  * Setter and getter for baudrate
+  */
+  void setBaudrate(unsigned int baudrate);
+  unsigned int getBaudrate() const;
+
+  /**
+  * Setter and getter for timeout
+  */
+  void setTimeout(time_duration timeout);
+  time_duration getTimeout() const;
+
+  /**
+  * Setter and getter for parity
+  */
+  void setParity(Parity parity);
+  Parity getParity() const;
+
+  /**
+  * Setter and getter character size
+  */
+  void setCsize(unsigned char csize);
+  unsigned char getCsize() const;
+
+  /**
+  * Setter and getter flow control
+  */
+  void setFlowControl(FlowControl flow);
+  FlowControl getFlowControl() const;
+
+  /**
+  * Setter and getter for stop bits
+  */
+  void setStopBits(StopBits stop);
+  StopBits getStopBits() const;
+
+private:
+  std::string device;
+  unsigned int baudrate;
+  time_duration timeout;
+  Parity parity;
+  unsigned char csize;
+  FlowControl flow;
+  StopBits stop;
+};
+
+
+class SerialDeviceImpl : private boost::noncopyable
+{
+public:
+  /**
+  * Construct a SerialDeviceImpl from a SerialOptions class
+  * \param options serial port options
+  */
+  SerialDeviceImpl(const SerialOptions& options);
+
+  boost::asio::io_service io; ///< Io service object
+  boost::asio::serial_port port; ///< Serial port object
+  boost::asio::deadline_timer timer; ///< Timer for timeout
+  boost::posix_time::time_duration timeout; ///< Read/write timeout
+  enum ReadResult result;  ///< Used by read with timeout
+  std::streamsize bytesTransferred; ///< Used by async read callback
+  char *readBuffer; ///< Used to hold read data
+  std::streamsize readBufferSize; ///< Size of read data buffer
+};
+
+
+
+/**
+* \internal
+* Implementation detail of a serial device.
+* User code should use SerialStream
+*/
+class SerialDevice
+{
+public:
+  typedef char char_type;
+  typedef boost::iostreams::bidirectional_device_tag category;
+
+  /**
+  * \internal
+  * Constructor.
+  * \throws ios_base::failure if there are errors with the serial port.
+  * \param options serial port options
+  */
+  explicit SerialDevice(const SerialOptions& options);
+
+  /**
+  * \internal
+  * Read from serial port.
+  * \throws TimeoutException on timeout, or ios_base::failure if there are
+  * errors with the serial port.
+  * Note: TimeoutException derives from ios_base::failure so catching that
+  * allows to catch any exception.
+  * Use the clear() member function to go on reading after an exception was
+  * thrown.
+  * \param s where to store read characters
+  * \param n max number of characters to read
+  * \return number of character read
+  */
+  std::streamsize read(char *s, std::streamsize n);
+
+  /**
+  * \internal
+  * Write to serial port.
+  * \throws ios_base::failure if there are errors with the serial port.
+  * Use the clear() member function to go on reading after an exception was
+  * thrown.
+  * \param s
+  * \param n
+  * \return
+  */
+  std::streamsize write(const char *s, std::streamsize n);
+
+private:
   /**
   * Callack called either when the read timeout is expired or canceled.
   * If called because timeout expired, sets result to resultTimeoutExpired
@@ -244,43 +435,22 @@ private:
   * If called because of read complete, sets result to resultSuccess
   * If called because read error, sets result to resultError
   */
-  void readCompleted(const boost::system::error_code& error,
-    const size_t bytesTransferred);
+  void readCompleted(const boost::system::error_code& error, const size_t bytesTransferred);
 
-  /**
-  * Possible outcome of a read. Set by callbacks, read from main code
-  */
-  enum ReadResult
-  {
-    resultInProgress,
-    resultSuccess,
-    resultError,
-    resultTimeoutExpired
-  };
-
-  boost::asio::io_service io; ///< Io service object
-  boost::asio::serial_port port; ///< Serial port object
-  boost::asio::deadline_timer timer; ///< Timer for timeout
-  boost::posix_time::time_duration timeout; ///< Read/write timeout
-  boost::asio::streambuf readData; ///< Holds eventual read but not consumed
-  enum ReadResult result;  ///< Used by read with timeout
-  size_t bytesTransferred; ///< Used by async read callback
-  ReadSetupParameters setupParameters; ///< Global because used in the OSX fix
+  boost::shared_ptr<SerialDeviceImpl> pImpl; //Implementation
 };
 
+/**
+* SerialStream, an iostream-compatible serial port class.
+* Note: due to a limitation about error reporting with boost::iostreams,
+* this class *always* throws exceptions on error (timeout, failure, etc..)
+* so after creating an instance of this class you should alway enable
+* exceptions with the exceptions() member function:
+* \code SerialStream serial; serial.exceptions(ios::failbit | ios::badbit);
+* \endcode
+* If you don't, functions like getline() will swallow the exceptions, while
+* operator >> will throw, leading to unconsistent behaviour.
+*/
+typedef boost::iostreams::stream<SerialDevice> SerialStream;
 
-
-class COMport
-{
-private:
-  std::string portname;
-  int baudrate;
-public:
-  void set_portname(std::string);
-  void set_portname_stdin();
-  void set_baudrate(int);
-  void set_baudrate_stdin();
-  std::string get_portname();
-  int get_baudrate();
-};
 
