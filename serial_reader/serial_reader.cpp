@@ -217,7 +217,10 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 2) //MagnetiMarelli
   {
-    SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
+    //SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
+
+    SerialStream sserial(portacom);
+    sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
     try {
       std::string sst;
@@ -234,7 +237,15 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        sst = sserial.readLine();
+        //sst = sserial.readLine();
+        try {
+          std::getline(sserial, sst);
+        }
+        catch (TimeoutException&) {
+          sserial.clear(); //Don't forget to clear error flags after a timeout
+          std::cerr << "Timeout occurred" << std::endl;
+        }
+
         tnow = time(NULL);
 
         if (sst[0] == '{')
@@ -350,7 +361,10 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 4) // ViaSat
   {
-    SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
+    //SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
+
+    SerialStream sserial(portacom);
+    sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
     try {
       std::string sst;
@@ -367,7 +381,15 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        sst = sserial.readLine();
+        //sst = sserial.readLine();
+        try {
+          std::getline(sserial, sst);
+        }
+        catch (TimeoutException&) {
+          sserial.clear(); //Don't forget to clear error flags after a timeout
+          std::cerr << "Timeout occurred" << std::endl;
+        }
+
         tnow = time(NULL);
 
         if (sst[1] == 'G')
@@ -424,8 +446,12 @@ int main(int argc, char ** argv)
   else if (systeminfo == 5) // MetaSystem
   {
     MetasystemData dato;
-    TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
-    serial.setTimeout(boost::posix_time::seconds(0));
+    //TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
+    //serial.setTimeout(boost::posix_time::seconds(0));
+
+    SerialStream serial(portacom);
+    serial.exceptions(std::ios::badbit | std::ios::failbit);
+
 
     try {
 
@@ -440,7 +466,8 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataS(serial, 1);
+        //dato.readDataS(serial, 1);
+        dato.readDataStr(serial, 1);
         tnow = time(NULL);
 
         for (size_t i = 0; i < dato.acc_v.size(); i++) {
@@ -479,8 +506,11 @@ int main(int argc, char ** argv)
   else if (systeminfo == 6) // UBX
   {
     GPSData dato;
-    TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
-    serial.setTimeout(boost::posix_time::seconds(0));
+    //TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
+    //serial.setTimeout(boost::posix_time::seconds(0));
+
+    SerialStream serial(portacom);
+    serial.exceptions(std::ios::badbit | std::ios::failbit);
 
     try {
 
@@ -495,7 +525,7 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataS(serial);
+        dato.readDataStr(serial);
         tnow = time(NULL);
 
 #ifdef WRITE_ON_STDOUT
@@ -516,8 +546,11 @@ int main(int argc, char ** argv)
   else if (systeminfo == 7) // Octo
   {
     OctoData dato;
-    TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
-    serial.setTimeout(boost::posix_time::seconds(0));
+    //TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
+    //serial.setTimeout(boost::posix_time::seconds(0));
+
+    SerialStream serial(portacom);
+    serial.exceptions(std::ios::badbit | std::ios::failbit);
 
     try {
 
@@ -532,7 +565,7 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataS(serial, 1);
+        dato.readDataStr(serial, 1);
         tnow = time(NULL);
 
         double data_temp[3];
@@ -586,7 +619,10 @@ int main(int argc, char ** argv)
   else if (systeminfo == 8) // NMEA
   {
     GPSData dato;
-    SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
+    //SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
+
+    SerialStream sserial(portacom);
+    sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
     std::vector<boost::regex> patterns;
     //std::vector<std::string> pattern_names({ "GSV", "GLL", "RMC", "VTG", "GGA", "GSA" });
@@ -612,7 +648,15 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        sst = sserial.readLine();
+        //sst = sserial.readLine();
+        try {
+          std::getline(sserial, sst);
+        }
+        catch (TimeoutException&) {
+          sserial.clear(); //Don't forget to clear error flags after a timeout
+          std::cerr << "Timeout occurred" << std::endl;
+        }
+
         tnow = time(NULL);
 
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(","));
@@ -638,8 +682,11 @@ int main(int argc, char ** argv)
   else if (systeminfo == 9) // MagnetiMarelli_v2 //Octo-clone
   {
     OctoData dato;
-    TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
-    serial.setTimeout(boost::posix_time::seconds(0));
+    //TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
+    //serial.setTimeout(boost::posix_time::seconds(0));
+
+    SerialStream serial(portacom);
+    serial.exceptions(std::ios::badbit | std::ios::failbit);
 
     try {
 
@@ -654,7 +701,7 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataS(serial, 1);
+        dato.readDataStr(serial, 1);
         tnow = time(NULL);
 
         double data_temp[3];
