@@ -141,6 +141,10 @@ int main(int argc, char ** argv)
   portacom.setDevice(serial_port);
   portacom.setBaudrate(baudrate);
   portacom.setTimeout(boost::posix_time::seconds(SERIAL_PORT_TIMEOUT_SECONDS));
+  portacom.setFlowControl(SerialOptions::noflow);
+  portacom.setParity(SerialOptions::noparity);
+  portacom.setCsize(8);
+  portacom.setStopBits(SerialOptions::one);
 
 
   logfile.open(box_types[systeminfo - 1] + ".log", std::ofstream::out);
@@ -282,7 +286,10 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 3) // Texa
   {
-    SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
+    //SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
+
+    SerialStream sserial(portacom);
+    sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
     try {
       std::string sst;
@@ -299,9 +306,16 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        sst = sserial.readLine();
-        tnow = time(NULL);
+        //sst = sserial.readLine();
+        try {
+          std::getline(sserial, sst);
+        }
+        catch (TimeoutException&) {
+          sserial.clear(); //Don't forget to clear error flags after a timeout
+          std::cerr << "Timeout occurred" << std::endl;
+        }
 
+        tnow = time(NULL);
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
         if (strs.size() == 21 && strs[0] != "Index") {
           navdata.setInertial_s(&strs[strs.size() - 9]);
