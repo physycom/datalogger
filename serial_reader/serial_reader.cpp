@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
 {
   size_t systeminfo = 0;
   std::cout << "Datalogger v" << MAJOR_VERSION << "." << MINOR_VERSION << std::endl;
-  std::cout << "Usage: %s -p [serial_port] -b [baudrate] -t [box_type]" << std::endl;
+  std::cout << "Usage: " << argv[0] << " -p [serial_port] -b [baudrate] -t [box_type] -h (shows help and quit)" << std::endl;
   std::cout << "\t- [serial_port] serial port name (COMx on WIN, /dev/ttyUSBx on UNIX)" << std::endl;
   std::cout << "\t- [baudrate] " << std::endl;
   std::cout << "\t- [box_type] " << std::endl;
@@ -53,6 +53,8 @@ int main(int argc, char ** argv)
         case 't':
           systeminfo = atoi(argv[++i]);
           break;
+        case 'h':
+          exit(777);
         default:    // no match...
           std::cout << argv[i] << " not recognized" << std::endl;
           break;

@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
   std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA", "MagnetiMarelli_v2" });
 
   std::cout << "Datalogger v" << MAJOR_VERSION << "." << MINOR_VERSION << std::endl;
-  std::cout << "Usage: %s -f [filename] -t [box_type]" << std::endl;
+  std::cout << "Usage: " << argv[0] << " -f [filename] -t [box_type] -h (shows help and quit)" << std::endl;
   std::cout << "new: general fixes and improvements\n" << std::endl;
 
 
@@ -46,6 +46,8 @@ int main(int argc, char ** argv)
         case 't':
           systeminfo = atoi(argv[++i]);
           break;
+        case 'h':
+          exit(777);
         default:    // no match...
           std::cout << argv[i] << " not recognized" << std::endl;
           break;

@@ -22,7 +22,7 @@
 //#define WRITE_ON_STDOUT
 
 
-#define ENABLE_SLEEP
+//#define ENABLE_SLEEP
 #define SLEEP_TIME 500
 #define SERIAL_PORT_TIMEOUT_SECONDS 3 
 
