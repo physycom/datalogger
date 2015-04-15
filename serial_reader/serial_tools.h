@@ -300,8 +300,8 @@ public:
   *
   */
   SerialOptions(const std::string& device, unsigned int baudrate,
-    time_duration timeout = seconds(0), Parity parity = noparity,
-    unsigned char csize = 8, FlowControl flow = noflow, StopBits stop = one);
+    time_duration timeout , Parity parity,
+    unsigned char csize, FlowControl flow, StopBits stop);
 
   /**
   * Setter and getter for device name

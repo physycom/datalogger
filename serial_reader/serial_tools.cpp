@@ -255,39 +255,6 @@ void TimeoutSerial::readCompleted(const boost::system::error_code& error,
   result = resultError;
 }
 
-void COMport::set_portname(std::string port)
-{
-  portname = port;
-}
-
-void COMport::set_portname_stdin()
-{
-  std::cout << "Insert portname (on Win, tipically it is a COMxx, on Unix-like it is a /dev/ttyUSBxx): ";
-  std::cin >> portname;
-}
-
-std::string COMport::get_portname()
-{
-  return portname;
-}
-
-void COMport::set_baudrate(int baud)
-{
-  baudrate = baud;
-}
-
-void COMport::set_baudrate_stdin()
-{
-  std::cout << "Insert baudrate (tipically 115200): ";
-  std::cin >> baudrate;
-}
-
-int COMport::get_baudrate()
-{
-  return baudrate;
-}
-
-
 SerialOptions::SerialOptions() : device(), baudrate(9600), timeout(seconds(0)), parity(noparity), csize(8), flow(noflow), stop(one) {}
 SerialOptions::SerialOptions(const std::string& device, unsigned int baudrate,time_duration timeout = seconds(0), Parity parity = noparity, unsigned char csize = 8, FlowControl flow = noflow, StopBits stop = one) : device(device), baudrate(baudrate), timeout(timeout), parity(parity), csize(csize), flow(flow), stop(stop) {}
 
@@ -419,7 +386,7 @@ std::streamsize SerialDevice::read(char *s, std::streamsize n)
   pImpl->timer.async_wait(boost::bind(&SerialDevice::timeoutExpired, this,
     boost::asio::placeholders::error));
 
-  pImpl->port.async_read_some(boost::asio::buffer(s, n), boost::bind(&SerialDevice::readCompleted,
+  pImpl->port.async_read_some(boost::asio::buffer(s, (size_t) n), boost::bind(&SerialDevice::readCompleted,
     this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 
   for (;;)
@@ -447,7 +414,7 @@ std::streamsize SerialDevice::read(char *s, std::streamsize n)
 std::streamsize SerialDevice::write(const char *s, std::streamsize n)
 {
   try {
-    boost::asio::write(pImpl->port, boost::asio::buffer(s, n));
+    boost::asio::write(pImpl->port, boost::asio::buffer(s, (size_t) n));
   }
   catch (std::exception& e)
   {
