@@ -22,8 +22,8 @@
 //#define WRITE_ON_STDOUT
 
 
-//#define ENABLE_SLEEP
-#define SLEEP_TIME 500
+#define ENABLE_SLEEP
+#define SLEEP_TIME_MICROSECONDS 2500
 #define SERIAL_PORT_TIMEOUT_SECONDS 3 
 
 //#define COMMA_SEPARATION_VALUE ','
@@ -62,19 +62,21 @@
 #define POS_HDOP   13
 #define POS_COUNT  14
 
-#include <boost/asio.hpp>
-#include <boost/utility.hpp>
-#include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/thread.hpp>
-#include <boost/regex.hpp>
-#include <boost/system/error_code.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/iostreams/stream.hpp>
-#include <boost/iostreams/categories.hpp>
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <boost/function.hpp>
+#include <boost/iostreams/categories.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
+#include <boost/shared_array.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/thread.hpp>
+#include <boost/utility.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <cstdlib>

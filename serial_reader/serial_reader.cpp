@@ -203,7 +203,7 @@ int main(int argc, char ** argv)
         }
 
 #ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
       }
     }
@@ -217,8 +217,6 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 2) //MagnetiMarelli
   {
-    //SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
-
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
@@ -237,7 +235,6 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        //sst = sserial.readLine();
         try {
           std::getline(sserial, sst);
         }
@@ -283,7 +280,7 @@ int main(int argc, char ** argv)
 #endif
 
 #ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
       }
     }
@@ -297,8 +294,6 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 3) // Texa
   {
-    //SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
-
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
@@ -317,7 +312,6 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        //sst = sserial.readLine();
         try {
           std::getline(sserial, sst);
         }
@@ -348,7 +342,7 @@ int main(int argc, char ** argv)
 #endif
 
 #ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
       }
     }
@@ -361,8 +355,6 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 4) // ViaSat
   {
-    //SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
-
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
@@ -381,7 +373,6 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        //sst = sserial.readLine();
         try {
           std::getline(sserial, sst);
         }
@@ -432,7 +423,7 @@ int main(int argc, char ** argv)
 #endif
 
 #ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
       }
     }
@@ -446,8 +437,6 @@ int main(int argc, char ** argv)
   else if (systeminfo == 5) // MetaSystem
   {
     MetasystemData dato;
-    //TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
-    //serial.setTimeout(boost::posix_time::seconds(0));
 
     SerialStream serial(portacom);
     serial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -466,7 +455,6 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        //dato.readDataS(serial, 1);
         dato.readDataStr(serial, 1);
         tnow = time(NULL);
 
@@ -490,7 +478,7 @@ int main(int argc, char ** argv)
         }
         dato.acc_v.clear();
 #ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
       }
     }
@@ -506,8 +494,6 @@ int main(int argc, char ** argv)
   else if (systeminfo == 6) // UBX
   {
     GPSData dato;
-    //TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
-    //serial.setTimeout(boost::posix_time::seconds(0));
 
     SerialStream serial(portacom);
     serial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -546,8 +532,6 @@ int main(int argc, char ** argv)
   else if (systeminfo == 7) // Octo
   {
     OctoData dato;
-    //TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
-    //serial.setTimeout(boost::posix_time::seconds(0));
 
     SerialStream serial(portacom);
     serial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -603,7 +587,7 @@ int main(int argc, char ** argv)
 
         dato.data_v.clear();
 #ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
       }
     }
@@ -619,7 +603,6 @@ int main(int argc, char ** argv)
   else if (systeminfo == 8) // NMEA
   {
     GPSData dato;
-    //SimpleSerial sserial(portacom.getDevice(), portacom.getBaudrate());
 
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -648,7 +631,6 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        //sst = sserial.readLine();
         try {
           std::getline(sserial, sst);
         }
@@ -682,8 +664,6 @@ int main(int argc, char ** argv)
   else if (systeminfo == 9) // MagnetiMarelli_v2 //Octo-clone
   {
     OctoData dato;
-    //TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
-    //serial.setTimeout(boost::posix_time::seconds(0));
 
     SerialStream serial(portacom);
     serial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -739,7 +719,7 @@ int main(int argc, char ** argv)
 
         dato.data_v.clear();
 #ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME)));
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
       }
     }

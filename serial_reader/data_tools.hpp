@@ -908,7 +908,6 @@ void OctoData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
   while (data_v.size() < sampleCounter) {
     serial.read((char*)&buffer, sizeof(buffer));
 
-
     if (buffer == header_acc[0] || buffer == header_gyr[0]) {
       serial.read((char*)&buffer, sizeof(buffer));
       if (buffer == header_acc[1] || buffer == header_gyr[1]) {
@@ -955,7 +954,7 @@ void OctoData::readDataStr(SerialStream& serial, size_t sampleCounter) {
 
   while (data_v.size() < sampleCounter) {
     serial.read((char*)&buffer, sizeof(buffer));
-
+    printf("%02x ", buffer);
 
     if (buffer == header_acc[0] || buffer == header_gyr[0]) {
       serial.read((char*)&buffer, sizeof(buffer));
