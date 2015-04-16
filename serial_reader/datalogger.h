@@ -22,7 +22,7 @@
 //#define WRITE_ON_STDOUT
 
 
-#define ENABLE_SLEEP
+//#define ENABLE_SLEEP
 #define SLEEP_TIME_MICROSECONDS 2500
 #define SERIAL_PORT_TIMEOUT_SECONDS 3 
 
@@ -86,6 +86,7 @@
 #include <iomanip>
 #include <bitset>
 #include <vector>
+#include <list>
 #include <ctime>
 #include <stdexcept>
 

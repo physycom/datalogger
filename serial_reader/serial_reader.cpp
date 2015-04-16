@@ -438,14 +438,18 @@ int main(int argc, char ** argv)
   {
     MetasystemData dato;
 
-    SerialStream serial(portacom);
-    serial.exceptions(std::ios::badbit | std::ios::failbit);
-
+    SerialStream sserial(portacom);
+    sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
     try {
 
       while (exit == false)
       {
+        std::string sst;
+        std::vector<std::string> strs;
+        raw raw_data[3];
+        std::vector<float> acc(3);
+
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
 #else
@@ -455,20 +459,45 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataStr(serial, 1);
+        try {
+          std::getline(sserial, sst, dato.getAlignChar());
+        }
+        catch (TimeoutException&) {
+          sserial.clear(); //Don't forget to clear error flags after a timeout
+          std::cerr << "Timeout occurred" << std::endl;
+        }
+
         tnow = time(NULL);
 
-        for (size_t i = 0; i < dato.acc_v.size(); i++) {
-          navdata.setAcc(&dato.acc_v[i][0]);
+
+        if (sst.size() == 6) {
+          raw_data[0].value_ch[0] = sst[0];
+          raw_data[0].value_ch[1] = sst[1];
+          raw_data[1].value_ch[0] = sst[2];
+          raw_data[1].value_ch[1] = sst[3];
+          raw_data[2].value_ch[0] = sst[4];
+          raw_data[2].value_ch[1] = sst[5];
+
+          raw_data[0].value_sh = (raw_data[0].value_ush << 1);
+          //if (raw_data[0].value_ch[1] & 0x4000) raw_data[0].value_ch[1] |= 0x8000; // PaoloPariani mod, not working
+          raw_data[1].value_sh = (raw_data[1].value_ush << 1);
+          raw_data[2].value_sh = (raw_data[2].value_ush << 1);
+
+          for (size_t i = 0; i < acc.size(); i++) acc[i] = ((float)raw_data[i].value_sh) / 1e3f;
+
+          navdata.setAcc(&acc[0]);
           navdata.setTime(tnow);
 
 #ifdef WRITE_ON_STDOUT
+
           std::cout << navdata.to_string() << std::endl;
 #else
+
           logfile << navdata.to_string() << std::endl;
 #endif
 
 #if defined (USE_HOST_MEMORY)
+
           if (navdata.getAcc_s()[2].size()) {
             data[indiceData].d[0] = (double)counter++;
             data[indiceData].set(navdata.getInertial());
@@ -476,7 +505,7 @@ int main(int argc, char ** argv)
           }
 #endif
         }
-        dato.acc_v.clear();
+
 #ifdef ENABLE_SLEEP
         boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
