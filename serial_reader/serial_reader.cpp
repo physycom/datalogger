@@ -561,6 +561,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 7) // Octo
   {
     OctoData dato;
+    bool extracted_data;
 
     SerialStream serial(portacom);
     serial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -577,47 +578,50 @@ int main(int argc, char ** argv)
         {
           exit = true;
         }
+        extracted_data = false;
+        dato.readDataStr(serial, extracted_data);
 
-        dato.readDataStr(serial, 1);
-        tnow = time(NULL);
+        if (extracted_data) {
+          tnow = time(NULL);
 
-        double data_temp[3];
-        switch (dato.type){
-        case '1':
-          for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3;
-          navdata.setAcc(data_temp);
-          navdata.setTime(tnow);
-          break;
-        case '2':
-          for (size_t i = 0; i < 3; i++) data_temp[i] = dato.gyr_data[i] / 1e3;
-          navdata.setGyr(data_temp);
-          navdata.setTime(tnow);
-          break;
-        case '3':
-          // TODO
-        default:
-          break;
-        }
+          double data_temp[3];
+          switch (dato.type){
+          case '1':
+            for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3;
+            navdata.setAcc(data_temp);
+            navdata.setTime(tnow);
+            break;
+          case '2':
+            for (size_t i = 0; i < 3; i++) data_temp[i] = dato.gyr_data[i] / 1e3;
+            navdata.setGyr(data_temp);
+            navdata.setTime(tnow);
+            break;
+          case '3':
+            // TODO
+          default:
+            break;
+          }
 
 #ifdef WRITE_ON_STDOUT
-        std::cout << navdata.to_string() << std::endl;
+          std::cout << navdata.to_string() << std::endl;
 #else
-        logfile << navdata.to_string() << std::endl;
+          logfile << navdata.to_string() << std::endl;
 #endif
 
 
 #if defined (USE_HOST_MEMORY)
-        if (navdata.getAcc_s()[2].size()) {
-          data[indiceData].d[0] = (double)counter++;
-          data[indiceData].set(navdata.getInertial());
-          indiceData = (indiceData + 1) % DIMENSIONE_MAX;
-        }
+          if (navdata.getAcc_s()[2].size()) {
+            data[indiceData].d[0] = (double)counter++;
+            data[indiceData].set(navdata.getInertial());
+            indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+          }
 #endif
 
-        dato.data_v.clear();
+          dato.data_v.clear();
 #ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
+          boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
+        }
       }
     }
 
@@ -693,6 +697,7 @@ int main(int argc, char ** argv)
   else if (systeminfo == 9) // MagnetiMarelli_v2 //Octo-clone
   {
     OctoData dato;
+    bool extracted_data;
 
     SerialStream serial(portacom);
     serial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -709,47 +714,50 @@ int main(int argc, char ** argv)
         {
           exit = true;
         }
+        extracted_data = false;
+        dato.readDataStr(serial, extracted_data);
 
-        dato.readDataStr(serial, 1);
-        tnow = time(NULL);
+        if (extracted_data) {
+          tnow = time(NULL);
 
-        double data_temp[3];
-        switch (dato.type){
-        case '1':
-          for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3;
-          navdata.setAcc(data_temp);
-          navdata.setTime(tnow);
-          break;
-        case '2':
-          for (size_t i = 0; i < 3; i++) data_temp[i] = dato.gyr_data[i] / 1e3;
-          navdata.setGyr(data_temp);
-          navdata.setTime(tnow);
-          break;
-        case '3':
-          // TODO
-        default:
-          break;
-        }
+          double data_temp[3];
+          switch (dato.type){
+          case '1':
+            for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3;
+            navdata.setAcc(data_temp);
+            navdata.setTime(tnow);
+            break;
+          case '2':
+            for (size_t i = 0; i < 3; i++) data_temp[i] = dato.gyr_data[i] / 1e3;
+            navdata.setGyr(data_temp);
+            navdata.setTime(tnow);
+            break;
+          case '3':
+            // TODO
+          default:
+            break;
+          }
 
 #ifdef WRITE_ON_STDOUT
-        std::cout << navdata.to_string() << std::endl;
+          std::cout << navdata.to_string() << std::endl;
 #else
-        logfile << navdata.to_string() << std::endl;
+          logfile << navdata.to_string() << std::endl;
 #endif
 
 
 #if defined (USE_HOST_MEMORY)
-        if (navdata.getAcc_s()[2].size()) {
-          data[indiceData].d[0] = (double)counter++;
-          data[indiceData].set(navdata.getInertial());
-          indiceData = (indiceData + 1) % DIMENSIONE_MAX;
-        }
+          if (navdata.getAcc_s()[2].size()) {
+            data[indiceData].d[0] = (double)counter++;
+            data[indiceData].set(navdata.getInertial());
+            indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+          }
 #endif
 
-        dato.data_v.clear();
+          dato.data_v.clear();
 #ifdef ENABLE_SLEEP
-        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
+          boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
+        }
       }
     }
 

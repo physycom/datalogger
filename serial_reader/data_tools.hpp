@@ -531,79 +531,6 @@ void MetasystemData::readData(std::ifstream& inputfile, size_t sampleCounter) {
 }
 
 
-void MetasystemData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
-  unsigned char buffer;
-  size_t internal_counter = 0, external_counter = 0;
-  std::vector<float> acc(3);
-  raw data[3];
-
-  while (acc_v.size() < sampleCounter) {
-    serial.read((char*)&buffer, sizeof(buffer));
-    if (buffer != align_char) {
-      data[external_counter].value_ch[internal_counter++] = buffer;
-      if (internal_counter == 2) {
-        data[external_counter].value_sh = (data[external_counter].value_ush << 1);
-        //if (data[external_counter].value_ch[1] & 0x4000) data[external_counter].value_ch[1] |= 0x8000; // PaoloPariani mod, not working
-        internal_counter = 0;
-        external_counter++;
-      }
-    }
-    else {
-      internal_counter = 0;
-      external_counter = 0;
-    }
-
-    if (external_counter == 3) {
-      serial.read((char*)&buffer, sizeof(buffer));
-      if (buffer == align_char) {
-        for (size_t i = 0; i < acc.size(); i++) acc[i] = ((float)data[i].value_sh) / 1e3f;
-        acc_v.push_back(acc);
-      }
-      else {
-        printf("%02x %02x | %02x %02x | %02x %02x | %02x - stream corrupted, not ff terminated!\n", data[0].value_ch[0], data[0].value_ch[1], data[1].value_ch[0], data[1].value_ch[1], data[2].value_ch[0], data[2].value_ch[1], buffer);
-      }
-      external_counter = 0;
-    }
-  }
-}
-
-
-void MetasystemData::readDataStr(SerialStream& serial, size_t sampleCounter) {
-  unsigned char buffer;
-  size_t internal_counter = 0, external_counter = 0;
-  std::vector<float> acc(3);
-  raw data[3];
-
-  while (acc_v.size() < sampleCounter) {
-    serial.read((char*)&buffer, sizeof(buffer));
-    if (buffer != align_char) {
-      data[external_counter].value_ch[internal_counter++] = buffer;
-      if (internal_counter == 2) {
-        data[external_counter].value_sh = (data[external_counter].value_ush << 1);
-        //if (data[external_counter].value_ch[1] & 0x4000) data[external_counter].value_ch[1] |= 0x8000; // PaoloPariani mod, not working
-        internal_counter = 0;
-        external_counter++;
-      }
-    }
-    else {
-      internal_counter = 0;
-      external_counter = 0;
-    }
-
-    if (external_counter == 3) {
-      serial.read((char*)&buffer, sizeof(buffer));
-      if (buffer == align_char) {
-        for (size_t i = 0; i < acc.size(); i++) acc[i] = ((float)data[i].value_sh) / 1e3f;
-        acc_v.push_back(acc);
-      }
-      else {
-        printf("%02x %02x | %02x %02x | %02x %02x | %02x - stream corrupted, not ff terminated!\n", data[0].value_ch[0], data[0].value_ch[1], data[1].value_ch[0], data[1].value_ch[1], data[2].value_ch[0], data[2].value_ch[1], buffer);
-      }
-      external_counter = 0;
-    }
-  }
-}
-
 
 void MetasystemData::readDataAsync(const char *serial_data, unsigned int len) {
 
@@ -637,12 +564,7 @@ void MetasystemData::readDataAsync(const char *serial_data, unsigned int len) {
       for (size_t i = 0; i < acc.size(); i++) acc[i] = ((float)data[i].value_sh) / 1e3f;
       acc_v.push_back(acc);
     }
-    else if (external_counter == 3) {
-      external_counter = 0;
-    }
-    else {
-      printf("%02x %02x | %02x %02x | %02x %02x | %02x - stream corrupted, not ff terminated!\n", data[0].value_ch[0], data[0].value_ch[1], data[1].value_ch[0], data[1].value_ch[1], data[2].value_ch[0], data[2].value_ch[1], poppd);
-    }
+    else external_counter = 0;
   }
 }
 
@@ -874,9 +796,7 @@ public:
   std::int32_t lat, lon;
   std::vector<std::vector<float>> data_v;
   void readData(std::ifstream& inputfile, size_t sampleCounter);
-  void readDataS(TimeoutSerial& serial, size_t sampleCounter);
-  void readDataStr(SerialStream& serial, size_t sampleCounter);
-  void readDataGet(SerialStream& serial, size_t sampleCounter);
+  void readDataStr(SerialStream& serial, bool extracted_data);
 };
 
 OctoData::OctoData(){
@@ -892,7 +812,6 @@ void OctoData::readData(std::ifstream& inputfile, size_t sampleCounter) {
   while (data_v.size() < sampleCounter) {
     inputfile.read((char*)&buffer, sizeof(buffer));
     if (inputfile.eof()) break;
-
 
     if (buffer == header_acc[0] || buffer == header_gyr[0]) {
       inputfile.read((char*)&buffer, sizeof(buffer));
@@ -949,142 +868,72 @@ void OctoData::readData(std::ifstream& inputfile, size_t sampleCounter) {
 }
 
 
-void OctoData::readDataS(TimeoutSerial& serial, size_t sampleCounter) {
+
+void OctoData::readDataStr(SerialStream& serial, bool extracted_data) {
   unsigned char buffer;
   std::vector<float> dato(3);
+  std::streamsize extracted;
+  extracted_data = false;
 
-  while (data_v.size() < sampleCounter) {
-    serial.read((char*)&buffer, sizeof(buffer));
+  while (!extracted_data) {
+    extracted = serial.read((char*)&buffer, sizeof(buffer)).gcount();
+    if (extracted < sizeof(buffer)) break;
 
     if (buffer == header_acc[0] || buffer == header_gyr[0]) {
-      serial.read((char*)&buffer, sizeof(buffer));
+      extracted = serial.read((char*)&buffer, sizeof(buffer)).gcount();
+      if (extracted < sizeof(buffer)) break;
       if (buffer == header_acc[1] || buffer == header_gyr[1]) {
-        serial.read((char*)&buffer, sizeof(buffer));
+        extracted = serial.read((char*)&buffer, sizeof(buffer)).gcount();
+        if (extracted < sizeof(buffer)) break;
         if (buffer == header_acc[2]) {
           type = '1';
-          serial.read((char*)&id, sizeof(id));
-          serial.read((char*)acc_data, 3 * sizeof(std::int16_t));
+          extracted = serial.read((char*)&id, sizeof(id)).gcount();
+          if (extracted < sizeof(id)) break;
+          extracted = serial.read((char*)acc_data, 3 * sizeof(std::int16_t)).gcount();
+          if (extracted < sizeof(std::int16_t)) break;
           for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
           data_v.push_back(dato);
+          extracted_data = true;
         }
         else if (buffer == header_gyr[2]) {
           type = '2';
-          serial.read((char*)&id, sizeof(id));
-          serial.read((char*)gyr_data, 3 * sizeof(std::int16_t));
+          extracted = serial.read((char*)&id, sizeof(id)).gcount();
+          if (extracted < sizeof(id)) break;
+          extracted = serial.read((char*)gyr_data, 3 * sizeof(std::int16_t)).gcount();
+          if (extracted < sizeof(std::int16_t)) break;
           for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
           data_v.push_back(dato);
+          extracted_data = true;
         }
       }
     }
     else if (buffer == header_gps[0]) {
-      serial.read((char*)&buffer, sizeof(buffer));
+      extracted = serial.read((char*)&buffer, sizeof(buffer)).gcount();
+      if (extracted < sizeof(buffer)) break;
       if (buffer == header_gps[1]) {
-        serial.read((char*)&buffer, sizeof(buffer));
+        extracted = serial.read((char*)&buffer, sizeof(buffer)).gcount();
+        if (extracted < sizeof(buffer)) break;
         if (buffer == header_gps[2]) {
           type = '3';
-          serial.read((char*)&id, sizeof(id));
-          serial.read((char*)&timestamp, sizeof(timestamp));
-          serial.read((char*)&nav, sizeof(nav));
-          serial.read((char*)&heading, sizeof(heading));
-          serial.read((char*)&speed, sizeof(speed));
-          serial.read((char*)&lat, sizeof(lat));
-          serial.read((char*)&lon, sizeof(lon));
+          extracted = serial.read((char*)&id, sizeof(id)).gcount();
+          if (extracted < sizeof(id)) break;
+          extracted = serial.read((char*)&timestamp, sizeof(timestamp)).gcount();
+          if (extracted < sizeof(timestamp)) break;
+          extracted = serial.read((char*)&nav, sizeof(nav)).gcount();
+          if (extracted < sizeof(nav)) break;
+          extracted = serial.read((char*)&heading, sizeof(heading)).gcount();
+          if (extracted < sizeof(heading)) break;
+          extracted = serial.read((char*)&speed, sizeof(speed)).gcount();
+          if (extracted < sizeof(speed)) break;
+          extracted = serial.read((char*)&lat, sizeof(lat)).gcount();
+          if (extracted < sizeof(lat)) break;
+          extracted = serial.read((char*)&lon, sizeof(lon)).gcount();
+          if (extracted < sizeof(lon)) break;
+          // data not saved anywhere for now
+          extracted_data = true;
         }
       }
     }
   }
 }
 
-
-void OctoData::readDataStr(SerialStream& serial, size_t sampleCounter) {
-  unsigned char buffer;
-  std::vector<float> dato(3);
-
-  while (data_v.size() < sampleCounter) {
-    serial.read((char*)&buffer, sizeof(buffer));
-
-    if (buffer == header_acc[0] || buffer == header_gyr[0]) {
-      serial.read((char*)&buffer, sizeof(buffer));
-      if (buffer == header_acc[1] || buffer == header_gyr[1]) {
-        serial.read((char*)&buffer, sizeof(buffer));
-        if (buffer == header_acc[2]) {
-          type = '1';
-          serial.read((char*)&id, sizeof(id));
-          serial.read((char*)acc_data, 3 * sizeof(std::int16_t));
-          for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
-          data_v.push_back(dato);
-        }
-        else if (buffer == header_gyr[2]) {
-          type = '2';
-          serial.read((char*)&id, sizeof(id));
-          serial.read((char*)gyr_data, 3 * sizeof(std::int16_t));
-          for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
-          data_v.push_back(dato);
-        }
-      }
-    }
-    else if (buffer == header_gps[0]) {
-      serial.read((char*)&buffer, sizeof(buffer));
-      if (buffer == header_gps[1]) {
-        serial.read((char*)&buffer, sizeof(buffer));
-        if (buffer == header_gps[2]) {
-          type = '3';
-          serial.read((char*)&id, sizeof(id));
-          serial.read((char*)&timestamp, sizeof(timestamp));
-          serial.read((char*)&nav, sizeof(nav));
-          serial.read((char*)&heading, sizeof(heading));
-          serial.read((char*)&speed, sizeof(speed));
-          serial.read((char*)&lat, sizeof(lat));
-          serial.read((char*)&lon, sizeof(lon));
-        }
-      }
-    }
-  }
-}
-
-
-void OctoData::readDataGet(SerialStream& serial, size_t sampleCounter) {
-  char buffer;
-  std::vector<float> dato(3);
-
-  while (data_v.size() < sampleCounter) {
-    serial.get(buffer);
-
-    if (buffer == header_acc[0] || buffer == header_gyr[0]) {
-      serial.get(buffer);
-      if (buffer == header_acc[1] || buffer == header_gyr[1]) {
-        serial.get(buffer);
-        if (buffer == header_acc[2]) {
-          type = '1';
-          serial.read((char*)&id, sizeof(id));
-          serial.read((char*)acc_data, 3 * sizeof(std::int16_t));
-          for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
-          data_v.push_back(dato);
-        }
-        else if (buffer == header_gyr[2]) {
-          type = '2';
-          serial.read((char*)&id, sizeof(id));
-          serial.read((char*)gyr_data, 3 * sizeof(std::int16_t));
-          for (size_t i = 0; i < dato.size(); i++) dato[i] = acc_data[i];
-          data_v.push_back(dato);
-        }
-      }
-    }
-    else if (buffer == header_gps[0]) {
-      serial.get(buffer);
-      if (buffer == header_gps[1]) {
-        serial.get(buffer);
-        if (buffer == header_gps[2]) {
-          type = '3';
-          serial.read((char*)&id, sizeof(id));
-          serial.read((char*)&timestamp, sizeof(timestamp));
-          serial.read((char*)&nav, sizeof(nav));
-          serial.read((char*)&heading, sizeof(heading));
-          serial.read((char*)&speed, sizeof(speed));
-          serial.read((char*)&lat, sizeof(lat));
-          serial.read((char*)&lon, sizeof(lon));
-        }
-      }
-    }
-  }
-}
