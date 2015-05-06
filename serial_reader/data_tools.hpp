@@ -42,7 +42,7 @@ public:
 
   void setInertial_s(std::string * inertial_data);
   double * getInertial();
-  
+
   void setLat_s(std::string lat);
   void setLat(double lat);
   std::string getLat_s();
@@ -148,7 +148,7 @@ double NavData::getGyr(int index){
   return atof(nav_data[index + POS_GX].c_str());
 };
 
-void NavData::setInertial_s(std::string * inertial_data){  
+void NavData::setInertial_s(std::string * inertial_data){
   for (int i = 0; i < 6; i++) nav_data[i + POS_AX] = inertial_data[i];
 };
 
@@ -396,28 +396,29 @@ void GPSData::readDataStr(SerialStream& serial)
   while (!found) {
     serial.read((char*)&buffer, sizeof(buffer));
     if (buffer == align_A) {
-      serial.read((char*)&buffer, sizeof(buffer));
+      if (serial.read((char*)&buffer, sizeof(buffer)).gcount() < sizeof(buffer) ) break;
       if (buffer == align_B) {
-        serial.read((char*)&ubx_class, sizeof(ubx_class));
-        serial.read((char*)&ubx_id, sizeof(ubx_id));
-        serial.read((char*)&ubx_length, sizeof(ubx_length));
+        if (serial.read((char*)&ubx_class, sizeof(ubx_class)).gcount() < sizeof(ubx_class)) break;
+        if (serial.read((char*)&ubx_id, sizeof(ubx_id)).gcount() < sizeof(ubx_id)) break;
+        if (serial.read((char*)&ubx_length, sizeof(ubx_length)).gcount() < sizeof(ubx_length)) break;
 
-        char * temp = new char[ubx_length];
-        payload.resize(ubx_length);
-        serial.read((char*)&temp, ubx_length*sizeof(char));
-        size_t ii = 0;
-        for (auto i : payload) i = temp[ii++];
-        delete[] temp;
+        if (ubx_length > 0){
+          char * temp = new char[ubx_length];
+          payload.resize(ubx_length);
+          if (serial.read(temp, ubx_length*sizeof(char)).gcount() < ubx_length*sizeof(char)) break;
+          for (size_t i = 0; i < payload.size(); i++) payload[i] = temp[i];
+          delete[] temp;
+        }
 
-        serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
-        serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
+        if (serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A)).gcount() < sizeof(ubx_chk_A)) break;
+        if (serial.read((char*)&ubx_chk_B, sizeof(ubx_chk_B)).gcount() < sizeof(ubx_chk_B)) break;
 
         found = true;
-        printf("%02x - %02x:%02x - %02x:%02x - PL: %s - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, payload, ubx_chk_A, ubx_chk_B);
+        printf("%02x - %02x:%02x - %02x:%02x - L: %hi - PL: %s - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, ubx_length, payload, ubx_chk_A, ubx_chk_B);
       }
       else printf("align_B not valid: %02x:%02x\n", align_A, align_B);
     }
-    else printf("align_A not valid: %02x:%02x\n", align_A, align_B);
+    else printf("align_A not valid : % 02x : % 02x\n", align_A, align_B);
   }
 }
 
