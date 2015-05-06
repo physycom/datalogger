@@ -43,8 +43,21 @@
 #define MAJOR_VERSION 0
 #define MINOR_VERSION 11
 
-
 #define EPOCH_TIME_2000 946684800
+
+#define UBX_YEAR_OFFSET    4
+#define UBX_MONTH_OFFSET   6
+#define UBX_DAY_OFFSET     7
+#define UBX_HOUR_OFFSET    8
+#define UBX_MIN_OFFSET     9
+#define UBX_SEC_OFFSET    10
+#define UBX_NANO_OFFSET   16
+#define UBX_FIX_OFFSET    20
+#define UBX_LON_OFFSET    24
+#define UBX_LAT_OFFSET    28
+#define UBX_ALT_OFFSET    36
+#define UBX_SPEED_OFFSET  60
+#define UBX_HEAD_OFFSET   60
 
 #define POS_TIME    0
 #define POS_AX      1 
