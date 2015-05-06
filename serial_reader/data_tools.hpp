@@ -300,7 +300,6 @@ private:
 public:
   GPSData();
   void readData(std::ifstream& inputfile);
-  void readDataS(TimeoutSerial& serial);
   void readDataStr(SerialStream& serial);
 };
 
@@ -318,74 +317,33 @@ void GPSData::readData(std::ifstream& inputfile)
 
   while (!found) {
     inputfile.read((char*)&buffer, sizeof(buffer));
-    if (inputfile.eof()) break;
-
     if (buffer == align_A) {
-      inputfile.read((char*)&buffer, sizeof(buffer));
-      if (inputfile.eof()) break;
+      if (inputfile.read((char*)&buffer, sizeof(buffer)).gcount() < sizeof(buffer)) break;
       if (buffer == align_B) {
-        inputfile.read((char*)&ubx_class, sizeof(ubx_class));
-        if (inputfile.eof()) break;
-        inputfile.read((char*)&ubx_id, sizeof(ubx_id));
-        if (inputfile.eof()) break;
-        inputfile.read((char*)&ubx_length, sizeof(ubx_length));
-        if (inputfile.eof()) break;
+        if (inputfile.read((char*)&ubx_class, sizeof(ubx_class)).gcount() < sizeof(ubx_class)) break;
+        if (inputfile.read((char*)&ubx_id, sizeof(ubx_id)).gcount() < sizeof(ubx_id)) break;
+        if (inputfile.read((char*)&ubx_length, sizeof(ubx_length)).gcount() < sizeof(ubx_length)) break;
 
-        char * temp = new char[ubx_length];
-        payload.resize(ubx_length);
-        inputfile.read((char*)&temp, ubx_length*sizeof(char));
-        if (inputfile.eof()) break;
-        size_t ii = 0;
-        for (auto i : payload) i = temp[ii++];
-        delete[] temp;
+        if (ubx_length > 0){
+          char * temp = new char[ubx_length];
+          payload.resize(ubx_length);
+          if (inputfile.read(temp, ubx_length*sizeof(char)).gcount() < ubx_length*sizeof(char)) break;
+          for (size_t i = 0; i < payload.size(); i++) payload[i] = temp[i];
+          delete[] temp;
+        }
 
-        inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
-        if (inputfile.eof()) break;
-        inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
-        if (inputfile.eof()) break;
+        if (inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A)).gcount() < sizeof(ubx_chk_A)) break;
+        if (inputfile.read((char*)&ubx_chk_B, sizeof(ubx_chk_B)).gcount() < sizeof(ubx_chk_B)) break;
 
         found = true;
-        printf("%02x - %02x:%02x - %02x:%02x - PL: %s - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, payload, ubx_chk_A, ubx_chk_B);
+        printf("%02x - %02x:%02x - %02x:%02x - L: %hi - PL: %s - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, ubx_length, payload, ubx_chk_A, ubx_chk_B);
       }
       else printf("align_B not valid: %02x:%02x\n", align_A, align_B);
     }
-    else printf("align_A not valid: %02x:%02x\n", align_A, align_B);
+    else printf("align_A not valid : % 02x : % 02x\n", align_A, align_B);
   }
 }
 
-
-void GPSData::readDataS(TimeoutSerial& serial)
-{
-  unsigned char buffer;
-  bool found = false;
-
-  while (!found) {
-    serial.read((char*)&buffer, sizeof(buffer));
-    if (buffer == align_A) {
-      serial.read((char*)&buffer, sizeof(buffer));
-      if (buffer == align_B) {
-        serial.read((char*)&ubx_class, sizeof(ubx_class));
-        serial.read((char*)&ubx_id, sizeof(ubx_id));
-        serial.read((char*)&ubx_length, sizeof(ubx_length));
-
-        char * temp = new char[ubx_length];
-        payload.resize(ubx_length);
-        serial.read((char*)&temp, ubx_length*sizeof(char));
-        size_t ii = 0;
-        for (auto i : payload) i = temp[ii++];
-        delete[] temp;
-
-        serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
-        serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A));
-
-        found = true;
-        printf("%02x - %02x:%02x - %02x:%02x - PL: %s - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, payload, ubx_chk_A, ubx_chk_B);
-      }
-      else printf("align_B not valid: %02x:%02x\n", align_A, align_B);
-    }
-    else printf("align_A not valid: %02x:%02x\n", align_A, align_B);
-  }
-}
 
 
 void GPSData::readDataStr(SerialStream& serial)

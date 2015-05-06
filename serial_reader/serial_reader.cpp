@@ -635,8 +635,6 @@ int main(int argc, char ** argv)
 
   else if (systeminfo == 8) // NMEA
   {
-    GPSData dato;
-
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
@@ -677,6 +675,8 @@ int main(int argc, char ** argv)
         boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(","));
         found = false;
         for (auto i : patterns) if (boost::regex_search(strs[0], i)) found = true;
+
+        // TODO: save NMEA data into navdata
 
 #ifdef WRITE_ON_STDOUT
         std::cout << navdata.to_string() << std::endl;

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#define USE_HOST_MEMORY
+//#define USE_HOST_MEMORY
 //#define WRITE_ON_STDOUT
 
 
