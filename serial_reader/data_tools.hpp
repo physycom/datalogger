@@ -25,6 +25,7 @@ public:
   NavData();
   void setTime(time_t);
   void setTime_s(std::string time);
+  void setTime(struct tm &gps_time, int nano);
   std::string getTime();
 
   void setAcc_s(std::string * acc_data);
@@ -96,6 +97,16 @@ void NavData::setTime(time_t tnow){
 void NavData::setTime_s(std::string time){
   nav_data[POS_TIME] = time;
 };
+
+void NavData::setTime(struct tm &gps_time, int nano){
+  time_t gps_time_t = mktime(&gps_time);
+  time_t tnow = (int)(gps_time_t + nano * 1e-9);
+  struct tm * now = localtime(&tnow);
+  std::stringstream date;
+  date << now->tm_year + 1900 << TIME_SEPARATION_VALUE << (now->tm_mon + 1) << TIME_SEPARATION_VALUE << now->tm_mday << TIME_SEPARATION_VALUE << now->tm_hour << TIME_SEPARATION_VALUE << now->tm_min << TIME_SEPARATION_VALUE
+    << std::fixed << std::setprecision(3) << now->tm_sec + nano*1e-9;
+  nav_data[POS_TIME] = date.str();
+}
 
 void NavData::setAcc_s(std::string * acc_data){
   for (int i = 0; i < 3; i++) nav_data[i + POS_AX] = acc_data[i];
@@ -301,9 +312,18 @@ private:
   std::vector<char> payload;
   unsigned char ubx_chk_A;
   unsigned char ubx_chk_B;
-
+  unsigned char ubx_navpvt_class;
+  unsigned char ubx_navpvt_id;
+  unsigned char fix;
+  int32_t lon;
+  int32_t lat;
+  int32_t alt;
+  int32_t speed;
+  uint32_t heading;
 public:
   GPSData();
+  int nano;
+  struct tm gps_time;
   void readData(std::ifstream& inputfile);
   void readDataStr(SerialStream& serial);
 };
@@ -312,6 +332,8 @@ public:
 GPSData::GPSData() {
   align_A = (unsigned char)0xB5;
   align_B = (unsigned char)0x62;
+  ubx_navpvt_class = 0x01;
+  ubx_navpvt_id = 0x07;
 }
 
 
@@ -319,6 +341,7 @@ void GPSData::readData(std::ifstream& inputfile)
 {
   unsigned char buffer;
   bool found = false;
+  char * payload;
 
   while (!found) {
     inputfile.read((char*)&buffer, sizeof(buffer));
@@ -330,18 +353,41 @@ void GPSData::readData(std::ifstream& inputfile)
         if (inputfile.read((char*)&ubx_length, sizeof(ubx_length)).gcount() < sizeof(ubx_length)) break;
 
         if (ubx_length > 0){
-          char * temp = new char[ubx_length];
-          payload.resize(ubx_length);
-          if (inputfile.read(temp, ubx_length*sizeof(char)).gcount() < ubx_length*sizeof(char)) break;
-          for (size_t i = 0; i < payload.size(); i++) payload[i] = temp[i];
-          delete[] temp;
+          payload = new char[ubx_length];
+          if (inputfile.read(payload, ubx_length*sizeof(char)).gcount() < ubx_length*sizeof(char)) break;
+
+          if (ubx_class == ubx_navpvt_class && ubx_id == ubx_navpvt_id){
+            unsigned char uc_temp; unsigned short us_temp;
+
+            memcpy((void *)&us_temp, &payload[UBX_YEAR_OFFSET], sizeof(us_temp));
+            gps_time.tm_year = ((int)us_temp) - 1900;
+            memcpy((void *)&uc_temp, &payload[UBX_MONTH_OFFSET], sizeof(uc_temp));
+            gps_time.tm_mon = (int)uc_temp;
+            memcpy((void *)&uc_temp, &payload[UBX_DAY_OFFSET], sizeof(uc_temp));
+            gps_time.tm_mday = (int)uc_temp;
+            memcpy((void *)&uc_temp, &payload[UBX_HOUR_OFFSET], sizeof(uc_temp));
+            gps_time.tm_hour = (int)uc_temp;
+            memcpy((void *)&uc_temp, &payload[UBX_MIN_OFFSET], sizeof(uc_temp));
+            gps_time.tm_min = (int)uc_temp;
+            memcpy((void *)&uc_temp, &payload[UBX_SEC_OFFSET], sizeof(uc_temp));
+            gps_time.tm_sec = (int)uc_temp;
+            memcpy((void *)&nano, &payload[UBX_NANO_OFFSET], sizeof(nano));
+            memcpy((void *)&fix, &payload[UBX_FIX_OFFSET], sizeof(fix));
+            memcpy((void *)&lon, &payload[UBX_LON_OFFSET], sizeof(lon));
+            memcpy((void *)&lat, &payload[UBX_LAT_OFFSET], sizeof(lat));
+            memcpy((void *)&alt, &payload[UBX_ALT_OFFSET], sizeof(alt));
+            memcpy((void *)&speed, &payload[UBX_SPEED_OFFSET], sizeof(speed));
+            memcpy((void *)&heading, &payload[UBX_HEAD_OFFSET], sizeof(heading));
+          }
+
+          delete[] payload;
         }
 
         if (inputfile.read((char*)&ubx_chk_A, sizeof(ubx_chk_A)).gcount() < sizeof(ubx_chk_A)) break;
         if (inputfile.read((char*)&ubx_chk_B, sizeof(ubx_chk_B)).gcount() < sizeof(ubx_chk_B)) break;
 
         found = true;
-        printf("%02x - %02x:%02x - %02x:%02x - L: %hi - PL: %s - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, ubx_length, payload, ubx_chk_A, ubx_chk_B);
+        printf("%02x - %02x:%02x - %02x:%02x - Len: %hi - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, ubx_length, ubx_chk_A, ubx_chk_B);
       }
       else printf("align_B not valid: %02x:%02x\n", align_A, align_B);
     }
@@ -355,36 +401,59 @@ void GPSData::readDataStr(SerialStream& serial)
 {
   unsigned char buffer;
   bool found = false;
+  char * payload;
 
   while (!found) {
     serial.read((char*)&buffer, sizeof(buffer));
     if (buffer == align_A) {
-      if (serial.read((char*)&buffer, sizeof(buffer)).gcount() < sizeof(buffer) ) break;
+      if (serial.read((char*)&buffer, sizeof(buffer)).gcount() < sizeof(buffer)) break;
       if (buffer == align_B) {
         if (serial.read((char*)&ubx_class, sizeof(ubx_class)).gcount() < sizeof(ubx_class)) break;
         if (serial.read((char*)&ubx_id, sizeof(ubx_id)).gcount() < sizeof(ubx_id)) break;
         if (serial.read((char*)&ubx_length, sizeof(ubx_length)).gcount() < sizeof(ubx_length)) break;
 
         if (ubx_length > 0){
-          char * temp = new char[ubx_length];
-          payload.resize(ubx_length);
-          if (serial.read(temp, ubx_length*sizeof(char)).gcount() < ubx_length*sizeof(char)) break;
-          for (size_t i = 0; i < payload.size(); i++) payload[i] = temp[i];
-          delete[] temp;
+          payload = new char[ubx_length];
+          if (serial.read(payload, ubx_length*sizeof(char)).gcount() < ubx_length*sizeof(char)) break;
+
+          if (ubx_class == ubx_navpvt_class && ubx_id == ubx_navpvt_id){
+            unsigned char uc_temp; unsigned short us_temp;
+
+            memcpy((void *)&us_temp, &payload[UBX_YEAR_OFFSET], sizeof(us_temp));
+            gps_time.tm_year = ((int)us_temp) - 1900;
+            memcpy((void *)&uc_temp, &payload[UBX_MONTH_OFFSET], sizeof(uc_temp));
+            gps_time.tm_mon = (int)uc_temp;
+            memcpy((void *)&uc_temp, &payload[UBX_DAY_OFFSET], sizeof(uc_temp));
+            gps_time.tm_mday = (int)uc_temp;
+            memcpy((void *)&uc_temp, &payload[UBX_HOUR_OFFSET], sizeof(uc_temp));
+            gps_time.tm_hour = (int)uc_temp;
+            memcpy((void *)&uc_temp, &payload[UBX_MIN_OFFSET], sizeof(uc_temp));
+            gps_time.tm_min = (int)uc_temp;
+            memcpy((void *)&uc_temp, &payload[UBX_SEC_OFFSET], sizeof(uc_temp));
+            gps_time.tm_sec = (int)uc_temp;
+            memcpy((void *)&nano, &payload[UBX_NANO_OFFSET], sizeof(nano));
+            memcpy((void *)&fix, &payload[UBX_FIX_OFFSET], sizeof(fix));
+            memcpy((void *)&lon, &payload[UBX_LON_OFFSET], sizeof(lon));
+            memcpy((void *)&lat, &payload[UBX_LAT_OFFSET], sizeof(lat));
+            memcpy((void *)&alt, &payload[UBX_ALT_OFFSET], sizeof(alt));
+            memcpy((void *)&speed, &payload[UBX_SPEED_OFFSET], sizeof(speed));
+            memcpy((void *)&heading, &payload[UBX_HEAD_OFFSET], sizeof(heading));
+          }
+
+          delete[] payload;
         }
 
         if (serial.read((char*)&ubx_chk_A, sizeof(ubx_chk_A)).gcount() < sizeof(ubx_chk_A)) break;
         if (serial.read((char*)&ubx_chk_B, sizeof(ubx_chk_B)).gcount() < sizeof(ubx_chk_B)) break;
 
         found = true;
-        printf("%02x - %02x:%02x - %02x:%02x - L: %hi - PL: %s - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, ubx_length, payload, ubx_chk_A, ubx_chk_B);
+        printf("%02x - %02x:%02x - %02x:%02x - Len: %hi - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, ubx_length, ubx_chk_A, ubx_chk_B);
       }
       else printf("align_B not valid: %02x:%02x\n", align_A, align_B);
     }
     else printf("align_A not valid : % 02x : % 02x\n", align_A, align_B);
   }
 }
-
 
 
 class ACCData

@@ -146,8 +146,9 @@ int main(int argc, char ** argv)
   portacom.setCsize(8);
   portacom.setStopBits(SerialOptions::one);
 
-
+#ifndef WRITE_ON_STDOUT
   logfile.open(box_types[systeminfo - 1] + ".log", std::ofstream::out);
+#endif
 
 #if defined (USE_HOST_MEMORY)
   Data *data;
@@ -541,7 +542,7 @@ int main(int argc, char ** argv)
         }
 
         dato.readDataStr(serial);
-        tnow = time(NULL);
+        navdata.setTime(dato.gps_time, dato.nano);
 
 #ifdef WRITE_ON_STDOUT
         std::cout << navdata.to_string() << std::endl;
@@ -853,8 +854,9 @@ int main(int argc, char ** argv)
     std::cout << "Error: unidentified object #" << systeminfo << std::endl;
   }
 
-
+#ifndef WRITE_ON_STDOUT
   logfile.close();
+#endif
 
   return 0;
 }
