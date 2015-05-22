@@ -68,7 +68,7 @@ int main(int argc, char ** argv)
   }
   else { std::cout << "Using default parameters" << std::endl; }
 
-  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA", "MagnetiMarelli_v2" });
+  std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA", "MagnetiMarelli_v2", "MetaSystem_v2" });
 
   while (systeminfo < 1 || systeminfo > box_types.size()){
     std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
@@ -81,7 +81,7 @@ int main(int argc, char ** argv)
   }
 
 
-  std::vector<int> baudrates({ 300, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400 });
+  std::vector<int> baudrates({ 110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400, 460800, 921600 });
   for (auto br : baudrates)
   {
     baudrate_found = (br == baudrate);
@@ -768,6 +768,84 @@ int main(int argc, char ** argv)
     }
   }
 
+
+
+  else if (systeminfo == 10) // MetaSystem_v2
+  {
+    SerialStream sserial(portacom);
+    sserial.exceptions(std::ios::badbit | std::ios::failbit);
+
+    float acc[3], gyro[3];
+
+    try {
+      std::string sst;
+      std::vector<std::string> strs;
+
+      while (exit == false)
+      {
+#ifdef _WIN32
+        if (GetAsyncKeyState(VK_ESCAPE))
+#else
+        if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
+#endif
+        {
+          exit = true;
+        }
+
+        try {
+          std::getline(sserial, sst);
+        }
+        catch (TimeoutException&) {
+          sserial.clear(); //Don't forget to clear error flags after a timeout
+          std::cerr << "Timeout occurred" << std::endl;
+        }
+
+
+        //utcTime;nano;lat;lon;tV;fV;pdop;spd(mms);head;ax;ay;az;gx;gy;gz;cnt;rtctime
+
+        tnow = time(NULL);
+        boost::algorithm::split(strs, sst, boost::algorithm::is_any_of(";"));
+        //std::cout << sst << std::endl;
+        //std::cout << strs.size() << std::endl;
+        if ((BYPASS_CHECK && (strs.size() > 14)) || ((strs.size() == 18) && (strs[0] != "utcTime"))) {
+          acc[0] = (float) (atof(strs[9].c_str()) / 1000.);
+          acc[1] = (float) (atof(strs[10].c_str()) / 1000.);
+          acc[2] = (float) (atof(strs[11].c_str()) / 1000.);
+          gyro[0] = (float) (atof(strs[12].c_str()) / 60.);
+          gyro[1] = (float) (atof(strs[13].c_str()) / 60.);
+          gyro[2] = (float) (atof(strs[14].c_str()) / 60.);
+          navdata.setAcc(acc);
+          navdata.setGyr(gyro);
+          //navdata.setTime(tnow);
+          //navdata.setTime_s(strs[0] + '.' + strs[1]);
+          navdata.setTime_s(strs[0]);
+#ifdef WRITE_ON_STDOUT
+          std::cout << navdata.to_string() << std::endl;
+#else
+          logfile << navdata.to_string() << std::endl;
+#endif
+
+#if defined (USE_HOST_MEMORY)
+          if (navdata.getAcc_s()[2].size()) {
+            data[indiceData].d[0] = (double)counter++;
+            data[indiceData].set(navdata.getInertial());
+            indiceData = (indiceData + 1) % DIMENSIONE_MAX;
+          }
+#endif
+        }
+
+#ifdef ENABLE_SLEEP
+        boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
+#endif
+      }
+    }
+
+    catch (boost::system::system_error& e)
+    {
+      std::cout << "Error: " << e.what() << std::endl;
+      return 1;
+    }
+  }
 
 
   else

@@ -19,8 +19,9 @@
 #pragma once
 
 //#define USE_HOST_MEMORY
-//#define WRITE_ON_STDOUT
+#define WRITE_ON_STDOUT
 
+#define BYPASS_CHECK true
 
 //#define ENABLE_SLEEP
 #define SLEEP_TIME_MICROSECONDS 2500

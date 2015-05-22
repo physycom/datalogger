@@ -24,6 +24,7 @@ class NavData{
 public:
   NavData();
   void setTime(time_t);
+  void setTime_s(std::string time);
   std::string getTime();
 
   void setAcc_s(std::string * acc_data);
@@ -90,6 +91,10 @@ void NavData::setTime(time_t tnow){
   std::stringstream date;
   date << now->tm_year + 1900 << TIME_SEPARATION_VALUE << (now->tm_mon + 1) << TIME_SEPARATION_VALUE << now->tm_mday << TIME_SEPARATION_VALUE << now->tm_hour << TIME_SEPARATION_VALUE << now->tm_min << TIME_SEPARATION_VALUE << now->tm_sec;
   nav_data[POS_TIME] = date.str();
+};
+
+void NavData::setTime_s(std::string time){
+  nav_data[POS_TIME] = time;
 };
 
 void NavData::setAcc_s(std::string * acc_data){
@@ -433,8 +438,6 @@ public:
   MetasystemData();
   std::vector<std::vector<float>> acc_v;
   void readData(std::ifstream& inputfile, size_t sampleCounter);
-  void readDataS(TimeoutSerial& serial, size_t sampleCounter);
-  void readDataStr(SerialStream& serial, size_t sampleCounter);
   void readDataAsync(const char *data, unsigned int len);
   const char getAlignChar();
 };
