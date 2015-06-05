@@ -223,3 +223,7 @@ local.properties
 *.hex
 
 /Default
+tools/TOOL_run_all.ps1
+tools/TOOL_start_texa.ps1
+tools/TOOL_stop_texa.ps1
+*.ps1
