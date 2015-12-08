@@ -1,5 +1,6 @@
 #pragma once
 
+#define WIN32_LEAN_AND_MEAN
 #include <FL/Fl.H>
 #include <FL/gl.h>
 #include <GL/glu.h>

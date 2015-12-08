@@ -16,12 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ************************************************************************/
 
-#include "datalogger.h"
 #include "data_tools.hpp"
 
-////////////////////////
-#undef USE_HOST_MEMORY
-////////////////////////
 
 
 int main(int argc, char ** argv)

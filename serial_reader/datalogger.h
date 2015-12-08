@@ -18,7 +18,7 @@
 
 #pragma once
 
-//#define USE_HOST_MEMORY
+#define USE_HOST_MEMORY
 #define WRITE_ON_STDOUT
 
 #define BYPASS_CHECK true
@@ -37,6 +37,7 @@
 #define _WIN32_WINNT 0x0501
 #endif
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define WIN32_LEAN_AND_MEAN
 #define _SCL_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -76,8 +77,8 @@
 #define POS_HDOP   13
 #define POS_COUNT  14
 
-#include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/function.hpp>
@@ -90,6 +91,17 @@
 #include <boost/system/error_code.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
+#if defined(USE_HOST_MEMORY)
+#ifdef _WIN32
+#define BOOST_NO_RVALUE_REFERENCES
+#include <boost/interprocess/windows_shared_memory.hpp>
+#else
+#include <boost/interprocess/shared_memory_object.hpp>
+#endif
+#include <boost/interprocess/mapped_region.hpp>
+
+using namespace boost::interprocess;
+#endif
 
 #include <iostream>
 #include <fstream>
@@ -105,17 +117,6 @@
 #include <stdexcept>
 
 
-#if defined(USE_HOST_MEMORY)
-#ifdef _WIN32
-#define BOOST_NO_RVALUE_REFERENCES
-#include <boost/interprocess/windows_shared_memory.hpp>
-#else
-#include <boost/interprocess/shared_memory_object.hpp>
-#endif
-#include <boost/interprocess/mapped_region.hpp>
-
-using namespace boost::interprocess;
-#endif
 
 
 
