@@ -1,6 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "draw.h"
+#include "datalogger.h"
+#include <cmath>
+#include <string>
+#include <cstring>
+#include <vector>
 
 #define NUMERO_SCATOLETTE 9
 

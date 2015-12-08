@@ -2,9 +2,7 @@
 
 
 #include "draw.h"
-#include "frame.h"
-#include "form.h"
-#include <FL/Fl.H>
+#include "datalogger.h"
 
 using namespace boost::algorithm;
 

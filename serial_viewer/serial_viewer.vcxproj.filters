@@ -21,12 +21,6 @@
     <ClInclude Include="draw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="form.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Frame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\serial_reader\datalogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
