@@ -1,16 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "draw.h"
-#include "datalogger.h"
-#include <cmath>
-#include <string>
-#include <cstring>
-#include <vector>
 
 #define NUMERO_SCATOLETTE 9
 
-extern Data **data;
-extern int *indiceData;
+Data **data;
+int *indiceData;
 extern int tt;
 
 //#include "FL/fl_types.h"

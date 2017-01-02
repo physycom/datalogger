@@ -6,8 +6,8 @@
 
 using namespace boost::algorithm;
 
-Data **data;
-int * indiceData;
+extern Data **data;
+extern int * indiceData;
 
 extern Frame *scene;
 

@@ -300,8 +300,7 @@ union raw {
   short value_15 : 15, : 1;
 };
 
-class GPSData
-{
+class GPSData {
 private:
   unsigned char align_A;
   unsigned char align_B;
@@ -336,8 +335,7 @@ GPSData::GPSData() {
 }
 
 
-void GPSData::readData(std::ifstream& inputfile)
-{
+void GPSData::readData(std::ifstream& inputfile) {
   unsigned char buffer;
   bool found = false;
   char * payload;
@@ -396,8 +394,7 @@ void GPSData::readData(std::ifstream& inputfile)
 
 
 
-void GPSData::readDataStr(SerialStream& serial)
-{
+void GPSData::readDataStr(SerialStream& serial) {
   unsigned char buffer;
   bool found = false;
   char * payload;
@@ -455,8 +452,7 @@ void GPSData::readDataStr(SerialStream& serial)
 }
 
 
-class ACCData
-{
+class ACCData {
 private:
   short AccX, AccY, AccZ;
 public:
@@ -468,38 +464,31 @@ public:
   short getAccZ();
 };
 
-void ACCData::setAccX(short accx)
-{
+void ACCData::setAccX(short accx) {
   AccX = accx;
 }
 
-void ACCData::setAccY(short accy)
-{
+void ACCData::setAccY(short accy) {
   AccY = accy;
 }
 
-void ACCData::setAccZ(short accz)
-{
+void ACCData::setAccZ(short accz) {
   AccZ = accz;
 }
 
-short ACCData::getAccX()
-{
+short ACCData::getAccX() {
   return AccX;
 }
 
-short ACCData::getAccY()
-{
+short ACCData::getAccY() {
   return AccY;
 }
 
-short ACCData::getAccZ()
-{
+short ACCData::getAccZ() {
   return AccZ;
 }
 
-class MetasystemData
-{
+class MetasystemData {
 private:
   unsigned char align_char;
 public:
@@ -515,7 +504,7 @@ MetasystemData::MetasystemData() {
   align_char = (unsigned char)0xFF;
 }
 
-const char MetasystemData::getAlignChar(){
+const char MetasystemData::getAlignChar() {
   return (const char) align_char;
 }
 
@@ -563,7 +552,6 @@ void MetasystemData::readData(std::ifstream& inputfile, size_t sampleCounter) {
 
 
 void MetasystemData::readDataAsync(const char *serial_data, unsigned int len) {
-
   std::list<unsigned char> v(serial_data, serial_data + len);
   size_t internal_counter = 0, external_counter = 0;
   std::vector<float> acc(3);
@@ -599,8 +587,7 @@ void MetasystemData::readDataAsync(const char *serial_data, unsigned int len) {
 }
 
 
-class InfomobilityData
-{
+class InfomobilityData {
 private:
   char h1, h2, hclass, hid;
   short hlength;
@@ -633,8 +620,7 @@ public:
   void saveACCData(std::ofstream& outputfile);
 };
 
-void InfomobilityData::saveheader(std::ofstream& outputfile)
-{
+void InfomobilityData::saveheader(std::ofstream& outputfile) {
   outputfile.write(&h1, sizeof(h1));
   outputfile.write(&h2, sizeof(h2));
   outputfile.write(&hclass, sizeof(hclass));
@@ -642,14 +628,12 @@ void InfomobilityData::saveheader(std::ofstream& outputfile)
   outputfile.write((char*)&hlength, sizeof(hlength));
 }
 
-void InfomobilityData::printheader()
-{
+void InfomobilityData::printheader() {
   std::cout << "h1=" << h1 << "; h2=" << h2 << "hclass=" << hclass << "; hid=" << hid << std::endl;
   std::cout << "Payload length: " << hlength << std::endl;
 }
 
-void InfomobilityData::loadheader(std::ifstream& inputfile)
-{
+void InfomobilityData::loadheader(std::ifstream& inputfile) {
   h1 = 0, h2 = 0;
   while (h1 != 0xB5 || h2 != 0x62)
   {

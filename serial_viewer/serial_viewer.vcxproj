@@ -63,18 +63,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\serial_reader\datalogger.h" />
-    <ClInclude Include="draw.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\serial_reader\sharedmem.cpp" />
-    <ClCompile Include="draw.cpp" />
-    <ClCompile Include="form.cpp" />
-    <ClCompile Include="Frame.cpp" />
-    <ClCompile Include="serial_viewer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\datalogger.h" />
+    <ClInclude Include="..\src\data_tools.hpp" />
+    <ClInclude Include="..\src\draw.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\draw.cpp" />
+    <ClCompile Include="..\src\form.cpp" />
+    <ClCompile Include="..\src\Frame.cpp" />
+    <ClCompile Include="..\src\serial_viewer.cpp" />
+    <ClCompile Include="..\src\sharedmem.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

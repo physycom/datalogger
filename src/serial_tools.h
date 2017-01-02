@@ -9,6 +9,18 @@
 
 #include "datalogger.h"
 
+/**
+* Possible outcome of a read. Set by callbacks, read from main code
+*/
+enum ReadResult
+{
+  resultInProgress,
+  resultSuccess,
+  resultError,
+  resultTimeout
+};
+
+
 class SimpleSerial
 {
 public:
@@ -249,19 +261,6 @@ private:
   size_t bytesTransferred;                  ///< Used by async read callback
   ReadSetupParameters setupParameters;      ///< Global because used in the OSX fix
 };
-
-
-/**
-* Possible outcome of a read. Set by callbacks, read from main code
-*/
-enum ReadResult
-{
-  resultInProgress,
-  resultSuccess,
-  resultError,
-  resultTimeout
-};
-
 
 
 

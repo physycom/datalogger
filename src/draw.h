@@ -1,6 +1,17 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
+#include "datalogger.h"
+
+#ifdef __CYGWIN__  
+#include <windef.h> 
+#endif
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#include <windows.h>
+#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "glu32.lib")
+#endif
+
 #include <FL/Fl.H>
 #include <FL/gl.h>
 #include <GL/glu.h>
@@ -12,8 +23,6 @@
 #include <FL/Fl_Gl_Window.H>
 
 
-#pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "glu32.lib")
 
 
 void draw_scene();
@@ -28,8 +37,5 @@ public:
 };
 
 
-
-
-//fltkgl.lib; fltk.lib; opengl32.lib; glu32.lib; comctl32.lib;
 
 

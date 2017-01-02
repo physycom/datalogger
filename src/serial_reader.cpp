@@ -40,10 +40,10 @@ int main(int argc, char ** argv)
   bool serial_port_found = false;
   bool baudrate_found = false;
 
-  if (argc > 1){ /* Parse arguments, if there are arguments supplied */
-    for (int i = 1; i < argc; i++){
-      if ((argv[i][0] == '-') || (argv[i][0] == '/')){       // switches or options...
-        switch (tolower(argv[i][1])){
+  if (argc > 1) { /* Parse arguments, if there are arguments supplied */
+    for (int i = 1; i < argc; i++) {
+      if ((argv[i][0] == '-') || (argv[i][0] == '/')) {       // switches or options...
+        switch (tolower(argv[i][1])) {
         case 'p':
           serial_port = argv[++i];
           break;
@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
 
   std::vector<std::string> box_types({ "Infomobility", "MagnetiMarelli", "Texa", "ViaSat", "MetaSystem", "UBX", "Octo", "NMEA", "MagnetiMarelli_v2", "MetaSystem_v2" });
 
-  while (systeminfo < 1 || systeminfo > box_types.size()){
+  while (systeminfo < 1 || systeminfo > box_types.size()) {
     std::cout << "Which kind of system is attached? Answer with the number" << std::endl;
     for (size_t i = 0; i < box_types.size(); i++) std::cout << i + 1 << ". " << box_types[i] << std::endl;
     std::cin >> systeminfo;
@@ -82,12 +82,11 @@ int main(int argc, char ** argv)
 
 
   std::vector<int> baudrates({ 110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400, 460800, 921600 });
-  for (auto br : baudrates)
-  {
+  for (auto br : baudrates) {
     baudrate_found = (br == baudrate);
     if (baudrate_found) break;
   }
-  while (!baudrate_found){
+  while (!baudrate_found) {
     std::cout << "Baud rate: " << std::endl;
     std::cin >> baudrate;
     if (std::cin.fail()) {
@@ -117,7 +116,7 @@ int main(int argc, char ** argv)
     serial_port_found = (port == serial_port);
     if (serial_port_found) break;
   }
-  while (!serial_port_found){
+  while (!serial_port_found) {
     std::cout << "Serial port name: " << std::endl;
     std::cin >> serial_port;
     for (auto port : serial_port_names)
@@ -148,6 +147,11 @@ int main(int argc, char ** argv)
 
 #ifndef WRITE_ON_STDOUT
   logfile.open(box_types[systeminfo - 1] + ".log", std::ofstream::out);
+  /*
+  to redirect automatically stdout to logfile the following line is enough. In "coutbuf" there will be saved the cout original buffer in case
+  it is required to go back to stdout at a certain point during the program execution. Maybe this trick can be useful to reduce output functions
+  */
+  //auto coutbuf = std::cout.rdbuf(logfile.rdbuf());
 #endif
 
 #if defined (USE_HOST_MEMORY)
@@ -155,9 +159,18 @@ int main(int argc, char ** argv)
   data = (Data*)get_host_allocated_memory(box_types[systeminfo - 1].c_str());
 #endif
 
-  if (systeminfo == 1) //Infomobility
+  InfomobilityData idato;
+  MetasystemData mdato;
+  GPSData gdato;
+  OctoData odato;
+  std::vector<boost::regex> patterns;
+  //std::vector<std::string> pattern_names({ "GSV", "GLL", "RMC", "VTG", "GGA", "GSA" });
+  std::vector<std::string> pattern_names({ "RMC" });
+  bool extracted_data;
+
+  switch (systeminfo) {
+  case 1: //Infomobility
   {
-    InfomobilityData dato;
     TimeoutSerial serial(portacom.getDevice(), portacom.getBaudrate());
     serial.setTimeout(boost::posix_time::seconds(0));
 
@@ -174,32 +187,32 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.loadheaderS(serial);
-        dato.allocatePayload(dato.getPayloadSize());
-        dato.readPayloadS(serial);
-        dato.loadfooterS(serial);
-        dato.checkfooter();
-        //dato.printheader();
-        //dato.printfooter();
-        dato.saveheader(logfile);
-        dato.savefooter(logfile);
-        //dato.deAllocatePayload();
-        if (dato.isGPSData())
+        idato.loadheaderS(serial);
+        idato.allocatePayload(idato.getPayloadSize());
+        idato.readPayloadS(serial);
+        idato.loadfooterS(serial);
+        idato.checkfooter();
+        //idato.printheader();
+        //idato.printfooter();
+        idato.saveheader(logfile);
+        idato.savefooter(logfile);
+        //idato.deAllocatePayload();
+        if (idato.isGPSData())
         {
-          dato.recordGPSDataFromPayload();
+          idato.recordGPSDataFromPayload();
 #ifdef WRITE_ON_STDOUT
-          dato.printGPSData();
-#else
-          dato.saveGPSData(logfile);
+          idato.printGPSData();
+#else 
+          idato.saveGPSData(logfile);
 #endif
         }
         else
         {
-          dato.recordACCDataFromPayload();
+          idato.recordACCDataFromPayload();
 #ifdef WRITE_ON_STDOUT
-          dato.printACCData();
+          idato.printACCData();
 #else
-          dato.saveACCData(logfile);
+          idato.saveACCData(logfile);
 #endif
         }
 
@@ -209,14 +222,13 @@ int main(int argc, char ** argv)
       }
     }
 
-    catch (boost::system::system_error& e)
-    {
+    catch (boost::system::system_error& e) {
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
+    break;
   }
-
-  else if (systeminfo == 2) //MagnetiMarelli
+  case 2: //MagnetiMarelli
   {
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -225,8 +237,7 @@ int main(int argc, char ** argv)
       std::string sst;
       std::vector<std::string> strs;
 
-      while (exit == false)
-      {
+      while (exit == false) {
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
 #else
@@ -246,8 +257,7 @@ int main(int argc, char ** argv)
 
         tnow = time(NULL);
 
-        if (sst[0] == '{')
-        {
+        if (sst[0] == '{') {
           boost::algorithm::split(strs, sst, boost::algorithm::is_any_of("{}; "));
           navdata.setTime(tnow);
           navdata.setAcc_s(&strs[0]);
@@ -257,8 +267,7 @@ int main(int argc, char ** argv)
           logfile << navdata.to_string() << std::endl;
 #endif
         }
-        else
-        {
+        else {
           boost::algorithm::split(strs, sst, boost::algorithm::is_any_of("; "));
           double gyr_data[3];
           for (size_t i = 0; i < strs.size(); i++) gyr_data[i] = atof(strs[i].c_str()) / 256.;
@@ -290,10 +299,10 @@ int main(int argc, char ** argv)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
+    break;
   }
 
-
-  else if (systeminfo == 3) // Texa
+  case 3: // Texa
   {
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -352,9 +361,9 @@ int main(int argc, char ** argv)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
+    break;
   }
-
-  else if (systeminfo == 4) // ViaSat
+  case 4: // ViaSat
   {
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -433,12 +442,11 @@ int main(int argc, char ** argv)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
+    break;
   }
 
-  else if (systeminfo == 5) // MetaSystem
+  case 5: // MetaSystem
   {
-    MetasystemData dato;
-
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
@@ -461,7 +469,7 @@ int main(int argc, char ** argv)
         }
 
         try {
-          std::getline(sserial, sst, dato.getAlignChar());
+          std::getline(sserial, sst, mdato.getAlignChar());
         }
         catch (TimeoutException&) {
           sserial.clear(); //Don't forget to clear error flags after a timeout
@@ -518,15 +526,13 @@ int main(int argc, char ** argv)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
+    break;
   }
 
-
-  else if (systeminfo == 6) // UBX
+  case 6: // UBX
   {
-    GPSData dato;
-
-    SerialStream serial(portacom);
-    serial.exceptions(std::ios::badbit | std::ios::failbit);
+    SerialStream sserial(portacom);
+    sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
     try {
 
@@ -541,8 +547,8 @@ int main(int argc, char ** argv)
           exit = true;
         }
 
-        dato.readDataStr(serial);
-        navdata.setTime(dato.gps_time, dato.nano);
+        gdato.readDataStr(sserial);
+        navdata.setTime(gdato.gps_time, gdato.nano);
 
 #ifdef WRITE_ON_STDOUT
         std::cout << navdata.to_string() << std::endl;
@@ -557,15 +563,13 @@ int main(int argc, char ** argv)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
+    break;
   }
 
-  else if (systeminfo == 7) // Octo
+  case 7: // Octo
   {
-    OctoData dato;
-    bool extracted_data;
-
-    SerialStream serial(portacom);
-    serial.exceptions(std::ios::badbit | std::ios::failbit);
+    SerialStream sserial(portacom);
+    sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
     try {
 
@@ -580,20 +584,20 @@ int main(int argc, char ** argv)
           exit = true;
         }
         extracted_data = false;
-        dato.readDataStr(serial, extracted_data);
+        odato.readDataStr(sserial, extracted_data);
 
         if (extracted_data) {
           tnow = time(NULL);
 
           double data_temp[3];
-          switch (dato.type){
+          switch (odato.type) {
           case '1':
-            for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3;
+            for (size_t i = 0; i < 3; i++) data_temp[i] = odato.acc_data[i] / 1e3;
             navdata.setAcc(data_temp);
             navdata.setTime(tnow);
             break;
           case '2':
-            for (size_t i = 0; i < 3; i++) data_temp[i] = dato.gyr_data[i] / 1e3;
+            for (size_t i = 0; i < 3; i++) data_temp[i] = odato.gyr_data[i] / 1e3;
             navdata.setGyr(data_temp);
             navdata.setTime(tnow);
             break;
@@ -618,7 +622,7 @@ int main(int argc, char ** argv)
           }
 #endif
 
-          dato.data_v.clear();
+          odato.data_v.clear();
 #ifdef ENABLE_SLEEP
           boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
@@ -631,17 +635,14 @@ int main(int argc, char ** argv)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
+    break;
   }
 
-
-  else if (systeminfo == 8) // NMEA
+  case 8: // NMEA
   {
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
-    std::vector<boost::regex> patterns;
-    //std::vector<std::string> pattern_names({ "GSV", "GLL", "RMC", "VTG", "GGA", "GSA" });
-    std::vector<std::string> pattern_names({ "RMC" });
     for (auto i : pattern_names) patterns.push_back(boost::regex(i));
 
     try {
@@ -691,17 +692,13 @@ int main(int argc, char ** argv)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
+    break;
   }
 
-
-
-  else if (systeminfo == 9) // MagnetiMarelli_v2 //Octo-clone
+  case 9: // MagnetiMarelli_v2 //Octo-clone
   {
-    OctoData dato;
-    bool extracted_data;
-
-    SerialStream serial(portacom);
-    serial.exceptions(std::ios::badbit | std::ios::failbit);
+    SerialStream sserial(portacom);
+    sserial.exceptions(std::ios::badbit | std::ios::failbit);
 
     try {
 
@@ -716,20 +713,20 @@ int main(int argc, char ** argv)
           exit = true;
         }
         extracted_data = false;
-        dato.readDataStr(serial, extracted_data);
+        odato.readDataStr(sserial, extracted_data);
 
         if (extracted_data) {
           tnow = time(NULL);
 
           double data_temp[3];
-          switch (dato.type){
+          switch (odato.type) {
           case '1':
-            for (size_t i = 0; i < 3; i++) data_temp[i] = dato.acc_data[i] / 1e3;
+            for (size_t i = 0; i < 3; i++) data_temp[i] = odato.acc_data[i] / 1e3;
             navdata.setAcc(data_temp);
             navdata.setTime(tnow);
             break;
           case '2':
-            for (size_t i = 0; i < 3; i++) data_temp[i] = dato.gyr_data[i] / 1e3;
+            for (size_t i = 0; i < 3; i++) data_temp[i] = odato.gyr_data[i] / 1e3;
             navdata.setGyr(data_temp);
             navdata.setTime(tnow);
             break;
@@ -754,7 +751,7 @@ int main(int argc, char ** argv)
           }
 #endif
 
-          dato.data_v.clear();
+          odato.data_v.clear();
 #ifdef ENABLE_SLEEP
           boost::this_thread::sleep(boost::posix_time::microseconds((int64_t)(SLEEP_TIME_MICROSECONDS)));
 #endif
@@ -767,11 +764,11 @@ int main(int argc, char ** argv)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
+    break;
   }
 
 
-
-  else if (systeminfo == 10) // MetaSystem_v2
+  case 10: // MetaSystem_v2
   {
     SerialStream sserial(portacom);
     sserial.exceptions(std::ios::badbit | std::ios::failbit);
@@ -809,12 +806,12 @@ int main(int argc, char ** argv)
         //std::cout << sst << std::endl;
         //std::cout << strs.size() << std::endl;
         if ((BYPASS_CHECK && (strs.size() > 14)) || ((strs.size() == 18) && (strs[0] != "utcTime"))) {
-          acc[0] = (float) (atof(strs[9].c_str()) / 1000.);
-          acc[1] = (float) (atof(strs[10].c_str()) / 1000.);
-          acc[2] = (float) (atof(strs[11].c_str()) / 1000.);
-          gyro[0] = (float) (atof(strs[12].c_str()) / 60.);
-          gyro[1] = (float) (atof(strs[13].c_str()) / 60.);
-          gyro[2] = (float) (atof(strs[14].c_str()) / 60.);
+          acc[0] = (float)(atof(strs[9].c_str()) / 1000.);
+          acc[1] = (float)(atof(strs[10].c_str()) / 1000.);
+          acc[2] = (float)(atof(strs[11].c_str()) / 1000.);
+          gyro[0] = (float)(atof(strs[12].c_str()) / 60.);
+          gyro[1] = (float)(atof(strs[13].c_str()) / 60.);
+          gyro[2] = (float)(atof(strs[14].c_str()) / 60.);
           navdata.setAcc(acc);
           navdata.setGyr(gyro);
           //navdata.setTime(tnow);
@@ -846,12 +843,12 @@ int main(int argc, char ** argv)
       std::cout << "Error: " << e.what() << std::endl;
       return 1;
     }
+    break;
   }
 
-
-  else
-  {
+  default:
     std::cout << "Error: unidentified object #" << systeminfo << std::endl;
+    break;
   }
 
 #ifndef WRITE_ON_STDOUT
@@ -860,4 +857,6 @@ int main(int argc, char ** argv)
 
   return 0;
 }
+
+
 
