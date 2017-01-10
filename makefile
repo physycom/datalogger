@@ -10,7 +10,7 @@ ifeq ($(MY_OS),Darwin)
 LINKED_LIBS += -lboost_chrono-mt -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt -lboost_serialization-mt -lboost_date_time-mt -lboost_thread-mt -lpthread
 LINKED_LIBS += -framework OpenGL
 else
-LINKED_LIBS += -lboost_chrono -lboost_system -lboost_filesystem -lboost_regex -lboost_serialization -lboost_date_time -lboost_thread-mt -lpthread
+LINKED_LIBS += -lboost_chrono -lboost_system -lboost_filesystem -lboost_regex -lboost_serialization -lboost_date_time -lboost_thread -lpthread
 LINKED_LIBS += -lGL -lGLU
 endif
 
