@@ -12,9 +12,13 @@
 #pragma comment(lib, "glu32.lib")
 #endif
 
+#ifdef __APPLE__
+#include <OpenGL/glu.h>
+#else
+#include <GL/glu.h>
+#endif
 #include <FL/Fl.H>
 #include <FL/gl.h>
-#include <GL/glu.h>
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_draw.H>
 #include <FL/Fl_Window.H>

@@ -180,6 +180,8 @@ int main(int argc, char ** argv)
       {
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
+#elif __APPLE__
+        if (getc_unlocked(stdin) == 'q')   
 #else
         if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
 #endif
@@ -240,6 +242,8 @@ int main(int argc, char ** argv)
       while (exit == false) {
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
+#elif __APPLE__
+        if (getc_unlocked(stdin) == 'q')   
 #else
         if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
 #endif
@@ -315,6 +319,8 @@ int main(int argc, char ** argv)
       {
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
+#elif __APPLE__
+        if (getc_unlocked(stdin) == 'q')   
 #else
         if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
 #endif
@@ -376,6 +382,8 @@ int main(int argc, char ** argv)
       {
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
+#elif __APPLE__
+        if (getc_unlocked(stdin) == 'q')   
 #else
         if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
 #endif
@@ -461,6 +469,8 @@ int main(int argc, char ** argv)
 
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
+#elif __APPLE__
+        if (getc_unlocked(stdin) == 'q')   
 #else
         if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
 #endif
@@ -540,6 +550,8 @@ int main(int argc, char ** argv)
       {
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
+#elif __APPLE__
+        if (getc_unlocked(stdin) == 'q')   
 #else
         if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
 #endif
@@ -577,6 +589,8 @@ int main(int argc, char ** argv)
       {
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
+#elif __APPLE__
+        if (getc_unlocked(stdin) == 'q')   
 #else
         if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
 #endif
@@ -657,6 +671,8 @@ int main(int argc, char ** argv)
       {
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
+#elif __APPLE__
+        if (getc_unlocked(stdin) == 'q')   
 #else
         if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
 #endif
@@ -706,6 +722,8 @@ int main(int argc, char ** argv)
       {
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
+#elif __APPLE__
+        if (getc_unlocked(stdin) == 'q')   
 #else
         if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
 #endif
@@ -783,6 +801,8 @@ int main(int argc, char ** argv)
       {
 #ifdef _WIN32
         if (GetAsyncKeyState(VK_ESCAPE))
+#elif __APPLE__
+        if (getc_unlocked(stdin) == 'q')   
 #else
         if (fgetc_unlocked(stdin) == 'q')  // da implementare con fgetc_unlocked, questo e' solo un tentativo alla cieca, non so come funzioni!
 #endif

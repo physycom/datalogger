@@ -448,7 +448,7 @@ void SerialDevice::readCompleted(const boost::system::error_code& error,
     //Bug on OS X, it might be necessary to repeat the setup
     //http://osdir.com/ml/lib.boost.asio.user/2008-08/msg00004.html
     pImpl->port.async_read_some(
-      asio::buffer(pImpl->readBuffer, pImpl->readBufferSize),
+      boost::asio::buffer(pImpl->readBuffer, pImpl->readBufferSize),
       boost::bind(&SerialDevice::readCompleted, this, boost::asio::placeholders::error,
       boost::asio::placeholders::bytes_transferred));
     return;
@@ -829,7 +829,7 @@ void AsyncSerial::open(const std::string& devname, unsigned int baud_rate,
   setErrorStatus(false);//If we get here, no error
   pimpl->open = true; //Port is now open
 
-  boost::thread t(bind(&AsyncSerial::doRead, this));
+  boost::thread t(boost::bind(&AsyncSerial::doRead, this));
   pimpl->backgroundThread.swap(t);
 }
 
@@ -936,7 +936,7 @@ void AsyncSerial::setErrorStatus(bool e)
 }
 
 void AsyncSerial::setReadCallback(const
-  function<void(const char*, size_t)>& callback)
+  boost::function<void(const char*, size_t)>& callback)
 {
   pimpl->callback = callback;
 }
