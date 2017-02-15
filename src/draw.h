@@ -6,7 +6,6 @@
 #include <windef.h> 
 #endif
 #ifdef _WIN32
-#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "glu32.lib")
@@ -20,7 +19,7 @@
 #include <FL/Fl.H>
 #include <FL/gl.h>
 #include <FL/Fl_Slider.H>
-#include <FL/Fl_draw.H>
+#include <FL/Fl_Draw.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Value_Slider.H>

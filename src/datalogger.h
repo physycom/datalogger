@@ -34,7 +34,7 @@
 #define DIMENSIONE_MAX 1000
 
 #define MAJOR_VERSION 0
-#define MINOR_VERSION 11
+#define MINOR_VERSION 12
 
 #define EPOCH_TIME_2000 946684800
 
@@ -69,19 +69,10 @@
 #define POS_COUNT  14
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#define _SCL_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
 #if !defined (_WIN32_WINNT)
 #define _WIN32_WINNT 0x0501
 #endif
 #endif
-
-//#ifdef __CYGWIN__ 
-//#if !defined (_WIN32_WINNT)
-//#define _WIN32_WINNT 0x0501
-//#endif
-//#endif 
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
