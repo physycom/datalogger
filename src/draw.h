@@ -19,7 +19,7 @@
 #include <FL/Fl.H>
 #include <FL/gl.h>
 #include <FL/Fl_Slider.H>
-#include <FL/Fl_Draw.H>
+#include <FL/fl_draw.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Value_Slider.H>
