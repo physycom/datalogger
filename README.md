@@ -10,7 +10,8 @@
 </a>
 
 ## Purpose
-This tool acquires data from different brands of black boxes through the serial port, using a wrapper around boost::asio, and dumps them into raw files on disk. It can also plot data in realtime using an FLTK widget.
+This document describes a tool used during tests performed at the Laboratory of Physics of the City on black boxes.  
+It acquires data from different brands of devices through the serial port, using a wrapper around boost::asio, and dumps them into raw files on disk. It can also plot data in realtime using an FLTK widget. The biggest selling point is being able to deploy data analysis on all devices in a single passage, since data is internally represented in a single unified format.
 
 ## Installation
 **make** and a **C++11** compatible compiler are required. Clone the repo and type ``make``, it should be enough in most cases!   
