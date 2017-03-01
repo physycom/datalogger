@@ -224,3 +224,8 @@ local.properties
 
 *.VC.db
 *.err
+
+# Doc
+doc
+!doc/Doxyfile
+*.pdf

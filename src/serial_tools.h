@@ -424,7 +424,7 @@ public:
 
 private:
   /**
-  * Callack called either when the read timeout is expired or canceled.
+  * Callback called either when the read timeout is expired or canceled.
   * If called because timeout expired, sets result to resultTimeoutExpired
   */
   void timeoutExpired(const boost::system::error_code& error);
@@ -456,7 +456,7 @@ typedef boost::iostreams::stream<SerialDevice> SerialStream;
 class AsyncSerialImpl;
 
 /**
-* Asyncronous serial class.
+* Asynchronous serial class.
 * Intended to be a base class.
 */
 class AsyncSerial : private boost::noncopyable
@@ -578,7 +578,7 @@ private:
   void doWrite();
 
   /**
-  * Callback called at the end of an asynchronuous write operation,
+  * Callback called at the end of an asynchronous write operation,
   * if there is more data to write, restarts a new write operation.
   * This callback is called by the io_service in the spawned thread.
   */
@@ -617,7 +617,7 @@ protected:
 /**
 * Asynchronous serial class with read callback. User code can write data
 * from one thread, and read data will be reported through a callback called
-* from a separate thred.
+* from a separate thread.
 */
 class CallbackAsyncSerial : public AsyncSerial
 {

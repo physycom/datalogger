@@ -14,7 +14,21 @@ LINKED_LIBS += -lboost_chrono -lboost_system -lboost_filesystem -lboost_regex -l
 LINKED_LIBS += -lGL -lGLU
 endif
 
+DOC_FOLDERS = doc/html doc/latex
+DOXY_FILE   = doc/Doxyfile
+DOXY_HEADER = doc/doxy_header.tex
+
 all : dirtree $(EXE) $(LIB)
+
+.PHONY: doc
+
+doc: $(DOXY_FILE) $(DOXY_HEADER) src/serial_tools.h
+	doxygen $(DOXY_FILE) ;\
+	cd doc/latex ;\
+	$(MAKE) 
+
+$(DOXY_HEADER): 
+	[ -f $(DOXY_HEADER) ] || curl -o $(DOXY_HEADER) https://raw.githubusercontent.com/physycom/templates/master/doxy_header.tex
 
 dirtree:
 	@mkdir -p bin
@@ -28,6 +42,7 @@ bin/%.exe : src/%.cpp $(LIB)
 
 clean :
 	rm -f $(LIB) $(EXE)
+	rm -rf $(DOC_FOLDERS)
 
 cleanall :
-	rm -rf bin/ obj/
+	rm -rf bin obj $(DOC_FOLDERS)
