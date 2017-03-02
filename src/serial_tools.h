@@ -67,18 +67,18 @@ public:
 
 
 /**
-* Serial port class, with timeout on read operations.
+* Serial port class, with time-out on read operations.
 */
 class TimeoutSerial : private boost::noncopyable
 {
 public:
 
   /**
-  * Opens a serial device. By default timeout is disabled.
+  * Opens a serial device. By default time-out is disabled.
   * \param devname serial device name, example "/dev/ttyS0" or "COM1"
   * \param baud_rate serial baud rate
   * \param opt_parity serial parity, default none
-  * \param opt_csize serial character size, default 8bit
+  * \param opt_csize serial character size, default 8 bit
   * \param opt_flow serial flow control, default none
   * \param opt_stop serial stop bits, default 1
   * \throws boost::system::system_error if cannot open the
@@ -102,7 +102,7 @@ public:
   * \param devname serial device name, example "/dev/ttyS0" or "COM1"
   * \param baud_rate serial baud rate
   * \param opt_parity serial parity, default none
-  * \param opt_csize serial character size, default 8bit
+  * \param opt_csize serial character size, default 8 bit
   * \param opt_flow serial flow control, default none
   * \param opt_stop serial stop bits, default 1
   * \throws boost::system::system_error if cannot open the
@@ -134,8 +134,8 @@ public:
   void close();
 
   /**
-  * Set the timeout on read/write operations.
-  * To disable the timeout, call setTimeout(boost::posix_time::seconds(0));
+  * Set the time-out on read/write operations.
+  * To disable the time-out, call setTimeout(boost::posix_time::seconds(0));
   */
   void setTimeout(const boost::posix_time::time_duration& t);
 
@@ -166,18 +166,18 @@ public:
   * Read some data, blocking
   * \param data array of char to be read through the serial device
   * \param size array size
-  * \return numbr of character actually read 0<=return<=size
+  * \return number of character actually read 0<=return<=size
   * \throws boost::system::system_error if any error
-  * \throws timeout_exception in case of timeout
+  * \throws timeout_exception in case of time-out
   */
   void read(char *data, size_t size);
 
   /**
   * Read some data, blocking
   * \param size how much data to read
-  * \return the receive buffer. It iempty if no data is available
+  * \return the receive buffer. It is empty if no data is available
   * \throws boost::system::system_error if any error
-  * \throws timeout_exception in case of timeout
+  * \throws timeout_exception in case of time-out
   */
   std::vector<char> read(size_t size);
 
@@ -186,10 +186,10 @@ public:
   * Can only be used if the user is sure that the serial device will not
   * send binary data. For binary data read, use read()
   * The returned string is empty if no data has arrived
-  * \param size hw much data to read
+  * \param size how much data to read
   * \return a string with the received data.
   * \throws boost::system::system_error if any error
-  * \throws timeout_exception in case of timeout
+  * \throws timeout_exception in case of time-out
   */
   std::string readString(size_t size);
 
@@ -202,7 +202,7 @@ public:
   * \return a string with the received data. The delimiter is removed from
   * the string.
   * \throws boost::system::system_error if any error
-  * \throws timeout_exception in case of timeout
+  * \throws timeout_exception in case of time-out
   */
   std::string readStringUntil(const std::string& delim = "\n");
 
@@ -237,8 +237,8 @@ private:
   void performReadSetup(const ReadSetupParameters& param);
 
   /*
-  * Callack called either when the read timeout is expired or canceled.
-  * If called because timeout expired, sets result to resultTimeoutExpired
+  * Callback called either when the read time-out is expired or cancelled.
+  * If called because time-out expired, sets result to resultTimeoutExpired
   */
   void timeoutExpired(const boost::system::error_code& error);
 
@@ -252,12 +252,12 @@ private:
     const size_t bytesTransferred);
 
 
-  boost::asio::io_service io;               ///< Io service object
+  boost::asio::io_service io;               ///< I/O service object
   boost::asio::serial_port port;            ///< Serial port object
-  boost::asio::deadline_timer timer;        ///< Timer for timeout
-  boost::posix_time::time_duration timeout; ///< Read/write timeout
+  boost::asio::deadline_timer timer;        ///< Timer for time-out
+  boost::posix_time::time_duration timeout; ///< Read/write time-out
   boost::asio::streambuf readData;          ///< Holds eventual read but not consumed
-  enum ReadResult result;                   ///< Used by read with timeout
+  enum ReadResult result;                   ///< Used by read with time-out
   size_t bytesTransferred;                  ///< Used by async read callback
   ReadSetupParameters setupParameters;      ///< Global because used in the OSX fix
 };
@@ -291,7 +291,7 @@ public:
   * Constructor.
   * \param device device name (/dev/ttyS0, /dev/ttyUSB0, COM1, ...)
   * \param baudrate baudrate, like 9600, 115200 ...
-  * \param timeout timeout when reading, use zero to disable
+  * \param timeout time-out when reading, use zero to disable
   * \param parity parity
   * \param csize character size (5,6,7 or 8)
   * \param flow flow control
@@ -315,7 +315,7 @@ public:
   unsigned int getBaudrate() const;
 
   /**
-  * Setter and getter for timeout
+  * Setter and getter for time-out
   */
   void setTimeout(time_duration timeout);
   time_duration getTimeout() const;
@@ -364,11 +364,11 @@ public:
   */
   SerialDeviceImpl(const SerialOptions& options);
 
-  boost::asio::io_service io; ///< Io service object
+  boost::asio::io_service io; ///< I/O service object
   boost::asio::serial_port port; ///< Serial port object
-  boost::asio::deadline_timer timer; ///< Timer for timeout
-  boost::posix_time::time_duration timeout; ///< Read/write timeout
-  enum ReadResult result;  ///< Used by read with timeout
+  boost::asio::deadline_timer timer; ///< Timer for time-out
+  boost::posix_time::time_duration timeout; ///< Read/write time-out
+  enum ReadResult result;  ///< Used by read with time-out
   std::streamsize bytesTransferred; ///< Used by async read callback
   char *readBuffer; ///< Used to hold read data
   std::streamsize readBufferSize; ///< Size of read data buffer
@@ -398,7 +398,7 @@ public:
   /**
   * \internal
   * Read from serial port.
-  * \throws TimeoutException on timeout, or ios_base::failure if there are
+  * \throws TimeoutException on time-out, or ios_base::failure if there are
   * errors with the serial port.
   * Note: TimeoutException derives from ios_base::failure so catching that
   * allows to catch any exception.
@@ -424,8 +424,8 @@ public:
 
 private:
   /**
-  * Callback called either when the read timeout is expired or canceled.
-  * If called because timeout expired, sets result to resultTimeoutExpired
+  * Callback called either when the read time-out is expired or cancelled.
+  * If called because time-out expired, sets result to resultTimeoutExpired
   */
   void timeoutExpired(const boost::system::error_code& error);
 
@@ -442,13 +442,13 @@ private:
 /**
 * SerialStream, an iostream-compatible serial port class.
 * Note: due to a limitation about error reporting with boost::iostreams,
-* this class *always* throws exceptions on error (timeout, failure, etc..)
-* so after creating an instance of this class you should alway enable
+* this class *always* throws exceptions on error (time-out, failure, etc..)
+* so after creating an instance of this class you should always enable
 * exceptions with the exceptions() member function:
 * \code SerialStream serial; serial.exceptions(ios::failbit | ios::badbit);
 * \endcode
 * If you don't, functions like getline() will swallow the exceptions, while
-* operator >> will throw, leading to unconsistent behaviour.
+* operator >> will throw, leading to inconsistent behaviour.
 */
 typedef boost::iostreams::stream<SerialDevice> SerialStream;
 
@@ -469,7 +469,7 @@ public:
   * \param devname serial device name, example "/dev/ttyS0" or "COM1"
   * \param baud_rate serial baud rate
   * \param opt_parity serial parity, default none
-  * \param opt_csize serial character size, default 8bit
+  * \param opt_csize serial character size, default 8 bit
   * \param opt_flow serial flow control, default none
   * \param opt_stop serial stop bits, default 1
   * \throws boost::system::system_error if cannot open the
@@ -493,7 +493,7 @@ public:
   * \param devname serial device name, example "/dev/ttyS0" or "COM1"
   * \param baud_rate serial baud rate
   * \param opt_parity serial parity, default none
-  * \param opt_csize serial character size, default 8bit
+  * \param opt_csize serial character size, default 8 bit
   * \param opt_flow serial flow control, default none
   * \param opt_stop serial stop bits, default 1
   * \throws boost::system::system_error if cannot open the
@@ -629,7 +629,7 @@ public:
   * \param devname serial device name, example "/dev/ttyS0" or "COM1"
   * \param baud_rate serial baud rate
   * \param opt_parity serial parity, default none
-  * \param opt_csize serial character size, default 8bit
+  * \param opt_csize serial character size, default 8 bit
   * \param opt_flow serial flow control, default none
   * \param opt_stop serial stop bits, default 1
   * \throws boost::system::system_error if cannot open the
@@ -678,7 +678,7 @@ public:
   * \param devname serial device name, example "/dev/ttyS0" or "COM1"
   * \param baud_rate serial baud rate
   * \param opt_parity serial parity, default none
-  * \param opt_csize serial character size, default 8bit
+  * \param opt_csize serial character size, default 8 bit
   * \param opt_flow serial flow control, default none
   * \param opt_stop serial stop bits, default 1
   * \throws boost::system::system_error if cannot open the
@@ -701,13 +701,13 @@ public:
   * Read some data asynchronously. Returns immediately.
   * \param data array of char to be read through the serial device
   * \param size array size
-  * \return numbr of character actually read 0<=return<=size
+  * \return number of character actually read 0<=return<=size
   */
   size_t read(char *data, size_t size);
 
   /**
   * Read all available data asynchronously. Returns immediately.
-  * \return the receive buffer. It iempty if no data is available
+  * \return the receive buffer. It is empty if no data is available
   */
   std::vector<char> read();
 
@@ -741,7 +741,7 @@ private:
   void readCallback(const char *data, size_t len);
 
   /**
-  * Finds a substring in a vector of char. Used to look for the delimiter.
+  * Finds a sub-string in a vector of char. Used to look for the delimiter.
   * \param v vector where to find the string
   * \param s string to find
   * \return the beginning of the place in the vector where the first
