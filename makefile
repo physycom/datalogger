@@ -15,14 +15,14 @@ LINKED_LIBS += -lGL -lGLU
 endif
 
 DOC_FOLDERS = doc/html doc/latex
-DOXY_FILE   = doc/Doxyfile
+DOXY_FILE   = Doxyfile
 DOXY_HEADER = doc/doxy_header.tex
 
 all : dirtree $(EXE) $(LIB)
 
 .PHONY: doc
 
-doc: $(DOXY_FILE) $(DOXY_HEADER) src/serial_tools.h
+doc: dirtree $(DOXY_FILE) $(DOXY_HEADER) src/serial_tools.h
 	doxygen $(DOXY_FILE) ;\
 	cd doc/latex ;\
 	$(MAKE) 
@@ -33,6 +33,7 @@ $(DOXY_HEADER):
 dirtree:
 	@mkdir -p bin
 	@mkdir -p obj
+	@mkdir -p doc
 
 obj/%.o : src/%.cpp
 	$(CXX) $(OPT_CXX) -c -o $@ $<

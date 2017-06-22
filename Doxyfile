@@ -1,9 +1,8 @@
 # Modified variables
-PROJECT_NAME           = "datalogger"
+PROJECT_NAME           = "datalogger code documentation"
 OUTPUT_DIRECTORY       = doc
 INPUT                  = src
 INPUT                  += ./
-USE_MDFILE_AS_MAINPAGE = README.md
 WARN_LOGFILE           = doc/warnings.txt
 LATEX_HEADER           = doc/doxy_header.tex
 REPEAT_BRIEF           = NO
@@ -149,7 +148,6 @@ FILE_PATTERNS          = *.c \
                          *.inc \
                          *.m \
                          *.markdown \
-                         *.md \
                          *.mm \
                          *.dox \
                          *.py \

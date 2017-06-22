@@ -227,5 +227,5 @@ local.properties
 
 # Doc
 doc
-!doc/Doxyfile
-*.pdf
+.vs/
+.vscode/
