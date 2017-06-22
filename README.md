@@ -14,5 +14,8 @@ This document describes a tool used during tests performed at the Laboratory of 
 It acquires data from different brands of devices through the serial port, using a wrapper around boost::asio, and dumps them into raw files on disk. It can also plot data in realtime using an FLTK widget. The biggest selling point is being able to deploy data analysis on all devices in a single passage, since data is internally represented in a single unified format.
 
 ## Installation
-**make** and a **C++11** compatible compiler are required. Clone the repo and type ``make``, it should be enough in most cases!   
-There's also a **VS2015** solution avalaible.   
+**CMake** and a **C++11** compatible compiler are required. To build the executable, clone the repo and then type  
+```
+mkdir build ; cd build ; cmake .. ; cmake --build . --target install
+```
+With CMake you can also deploy projects for the most common IDEs.  
