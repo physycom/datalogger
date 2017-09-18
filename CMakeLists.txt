@@ -21,9 +21,13 @@ if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
+#set(Boost_USE_STATIC_LIBS   ON)
 set(Boost_USE_MULTITHREADED ON)  
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
+if(UNIX AND NOT APPLE)
+  find_package(LibRt REQUIRED)
+endif()
 find_package(Threads REQUIRED)
 find_package(FLTK REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -45,6 +49,7 @@ add_executable(file_converter ${CMAKE_SOURCE_DIR}/src/file_converter.cpp)
 
 target_link_libraries(serial_viewer 
     common 
+    ${CMAKE_DL_LIBS}
     ${FLTK_LIBRARIES} 
     ${OPENGL_gl_LIBRARY} 
     ${OPENGL_glu_LIBRARY} 
@@ -52,6 +57,13 @@ target_link_libraries(serial_viewer
     Threads::Threads
 )
 
+
 target_link_libraries(serial_reader common ${Boost_LIBRARIES} Threads::Threads)
 target_link_libraries(file_converter common ${Boost_LIBRARIES} Threads::Threads)
+
+if(UNIX AND NOT APPLE)
+  target_link_libraries(serial_viewer            LIBRT::LIBRT )
+  target_link_libraries(serial_reader            LIBRT::LIBRT )
+  target_link_libraries(file_converter           LIBRT::LIBRT )
+endif()
 
