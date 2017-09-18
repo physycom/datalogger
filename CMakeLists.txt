@@ -34,8 +34,8 @@ find_package(OpenGL REQUIRED)
 find_package(Boost COMPONENTS chrono system filesystem regex serialization date_time thread REQUIRED)
 
 
-include_directories(${Boost_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS}) 
-add_library(common 
+include_directories(${Boost_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS}) 
+set (COMMON_FILES  
     ${CMAKE_SOURCE_DIR}/src/sharedmem.cpp 
     ${CMAKE_SOURCE_DIR}/src/draw.cpp 
     ${CMAKE_SOURCE_DIR}/src/form.cpp 
@@ -43,13 +43,11 @@ add_library(common
     ${CMAKE_SOURCE_DIR}/src/serial_tools.cpp
 )
 
-add_executable(serial_viewer ${CMAKE_SOURCE_DIR}/src/serial_viewer.cpp)
-add_executable(serial_reader ${CMAKE_SOURCE_DIR}/src/serial_reader.cpp)
-add_executable(file_converter ${CMAKE_SOURCE_DIR}/src/file_converter.cpp)
+add_executable(serial_viewer ${CMAKE_SOURCE_DIR}/src/serial_viewer.cpp ${COMMON_FILES})
+add_executable(serial_reader ${CMAKE_SOURCE_DIR}/src/serial_reader.cpp ${COMMON_FILES})
+add_executable(file_converter ${CMAKE_SOURCE_DIR}/src/file_converter.cpp ${COMMON_FILES})
 
 target_link_libraries(serial_viewer 
-    common 
-    ${CMAKE_DL_LIBS}
     ${FLTK_LIBRARIES} 
     ${OPENGL_gl_LIBRARY} 
     ${OPENGL_glu_LIBRARY} 
@@ -57,9 +55,21 @@ target_link_libraries(serial_viewer
     Threads::Threads
 )
 
+target_link_libraries(serial_reader 
+    ${FLTK_LIBRARIES} 
+    ${OPENGL_gl_LIBRARY} 
+    ${OPENGL_glu_LIBRARY} 
+    ${Boost_LIBRARIES} 
+    Threads::Threads
+)
 
-target_link_libraries(serial_reader common ${Boost_LIBRARIES} Threads::Threads)
-target_link_libraries(file_converter common ${Boost_LIBRARIES} Threads::Threads)
+target_link_libraries(file_converter 
+    ${FLTK_LIBRARIES} 
+    ${OPENGL_gl_LIBRARY} 
+    ${OPENGL_glu_LIBRARY} 
+    ${Boost_LIBRARIES} 
+    Threads::Threads
+)
 
 if(UNIX AND NOT APPLE)
   target_link_libraries(serial_viewer            LIBRT::LIBRT )
