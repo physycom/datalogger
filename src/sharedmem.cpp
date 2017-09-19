@@ -1,6 +1,5 @@
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
+// Copyright 2014, 2015 Stefano Sinigardi, Alessandro Fabbri
+// for any question, please mail stefano.sinigardi@gmail.com
 
 #include "datalogger.h"
 

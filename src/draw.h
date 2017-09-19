@@ -1,3 +1,6 @@
+// Copyright 2014, 2015 Stefano Sinigardi, Alessandro Fabbri
+// for any question, please mail stefano.sinigardi@gmail.com
+
 #pragma once
 
 #include "datalogger.h"
@@ -7,8 +10,6 @@
 #endif
 #ifdef _WIN32
 #include <windows.h>
-#pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "glu32.lib")
 #endif
 
 #ifdef __APPLE__

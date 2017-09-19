@@ -1,3 +1,6 @@
+// Copyright 2014, 2015 Stefano Sinigardi, Alessandro Fabbri
+// for any question, please mail stefano.sinigardi@gmail.com
+
 #include "draw.h"
 
 #define SCREEN_WIDTH 400

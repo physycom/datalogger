@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0)
 project (datalogger)
 set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -34,7 +34,7 @@ find_package(OpenGL REQUIRED)
 find_package(Boost COMPONENTS chrono system filesystem regex serialization date_time thread REQUIRED)
 
 
-include_directories(${Boost_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS}) 
+include_directories(${Boost_INCLUDE_DIRS} ${FLTK_INCLUDE_DIR} ${OPENGL_INCLUDE_DIRS}) 
 
 add_library(common 
     ${CMAKE_SOURCE_DIR}/src/sharedmem.cpp 
