@@ -35,6 +35,15 @@ find_package(Boost COMPONENTS chrono system filesystem regex serialization date_
 
 
 include_directories(${Boost_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS}) 
+
+add_library(common 
+    ${CMAKE_SOURCE_DIR}/src/sharedmem.cpp 
+    ${CMAKE_SOURCE_DIR}/src/draw.cpp 
+    ${CMAKE_SOURCE_DIR}/src/form.cpp 
+    ${CMAKE_SOURCE_DIR}/src/Frame.cpp 
+    ${CMAKE_SOURCE_DIR}/src/serial_tools.cpp
+)
+
 set (COMMON_FILES  
     ${CMAKE_SOURCE_DIR}/src/sharedmem.cpp 
     ${CMAKE_SOURCE_DIR}/src/draw.cpp 
@@ -43,11 +52,23 @@ set (COMMON_FILES
     ${CMAKE_SOURCE_DIR}/src/serial_tools.cpp
 )
 
-add_executable(serial_viewer ${CMAKE_SOURCE_DIR}/src/serial_viewer.cpp ${COMMON_FILES})
-add_executable(serial_reader ${CMAKE_SOURCE_DIR}/src/serial_reader.cpp ${COMMON_FILES})
-add_executable(file_converter ${CMAKE_SOURCE_DIR}/src/file_converter.cpp ${COMMON_FILES})
+add_executable(serial_viewer 
+  ${CMAKE_SOURCE_DIR}/src/serial_viewer.cpp
+  ${COMMON_FILES}
+)
+
+add_executable(serial_reader 
+  ${CMAKE_SOURCE_DIR}/src/serial_reader.cpp
+  ${COMMON_FILES}
+)
+
+add_executable(file_converter 
+  ${CMAKE_SOURCE_DIR}/src/file_converter.cpp
+  ${COMMON_FILES}
+)
 
 target_link_libraries(serial_viewer 
+#    common 
     ${FLTK_LIBRARIES} 
     ${OPENGL_gl_LIBRARY} 
     ${OPENGL_glu_LIBRARY} 
@@ -56,6 +77,7 @@ target_link_libraries(serial_viewer
 )
 
 target_link_libraries(serial_reader 
+#    common 
     ${FLTK_LIBRARIES} 
     ${OPENGL_gl_LIBRARY} 
     ${OPENGL_glu_LIBRARY} 
@@ -64,6 +86,7 @@ target_link_libraries(serial_reader
 )
 
 target_link_libraries(file_converter 
+#    common 
     ${FLTK_LIBRARIES} 
     ${OPENGL_gl_LIBRARY} 
     ${OPENGL_glu_LIBRARY} 
