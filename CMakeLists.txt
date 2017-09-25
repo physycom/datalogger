@@ -69,34 +69,40 @@ add_executable(file_converter
 
 target_link_libraries(serial_viewer 
 #    common 
-    ${FLTK_LIBRARIES} 
-    ${OPENGL_gl_LIBRARY} 
     ${OPENGL_glu_LIBRARY} 
+    ${OPENGL_gl_LIBRARY} 
+    ${FLTK_LIBRARIES} 
     ${Boost_LIBRARIES} 
     Threads::Threads
 )
 
 target_link_libraries(serial_reader 
 #    common 
-    ${FLTK_LIBRARIES} 
-    ${OPENGL_gl_LIBRARY} 
     ${OPENGL_glu_LIBRARY} 
+    ${OPENGL_gl_LIBRARY} 
+    ${FLTK_LIBRARIES} 
     ${Boost_LIBRARIES} 
     Threads::Threads
 )
 
 target_link_libraries(file_converter 
 #    common 
-    ${FLTK_LIBRARIES} 
-    ${OPENGL_gl_LIBRARY} 
     ${OPENGL_glu_LIBRARY} 
+    ${OPENGL_gl_LIBRARY} 
+    ${FLTK_LIBRARIES} 
     ${Boost_LIBRARIES} 
     Threads::Threads
 )
 
 if(UNIX AND NOT APPLE)
-  target_link_libraries(serial_viewer            LIBRT::LIBRT )
-  target_link_libraries(serial_reader            LIBRT::LIBRT )
-  target_link_libraries(file_converter           LIBRT::LIBRT )
+target_link_libraries(serial_viewer            LIBRT::LIBRT )
+target_link_libraries(serial_reader            LIBRT::LIBRT )
+target_link_libraries(file_converter           LIBRT::LIBRT )
+endif()
+
+if(UNIX)
+target_link_libraries(serial_viewer            ${CMAKE_DL_LIBS} )
+target_link_libraries(serial_reader            ${CMAKE_DL_LIBS} )
+target_link_libraries(file_converter           ${CMAKE_DL_LIBS} )
 endif()
 
