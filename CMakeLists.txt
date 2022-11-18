@@ -33,6 +33,10 @@ find_package(FLTK    REQUIRED)
 find_package(OpenGL  REQUIRED)
 find_package(Boost   COMPONENTS chrono date_time filesystem iostreams regex serialization system thread REQUIRED)
 
+if(UNIX AND NOT APPLE)
+  find_package(X11   REQUIRED)
+endif()
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Install prefix" FORCE)
 endif()
@@ -85,7 +89,15 @@ target_link_libraries(datalog
 )
 
 if(UNIX AND NOT APPLE)
-  target_link_libraries(datalog PUBLIC LIBRT::LIBRT )
+  target_link_libraries(datalog
+  PUBLIC
+    X11::X11
+    X11::Xcursor
+    X11::Xext
+    X11::Xfixes
+    X11::Xft
+    X11::Xinerama
+    LIBRT::LIBRT )
 endif()
 
 if(UNIX)
