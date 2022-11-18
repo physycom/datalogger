@@ -5,11 +5,8 @@
 <img src="https://cdn.rawgit.com/physycom/templates/697b327d/logo_unibo.png" width="90" height="90" alt="© Physics of Complex Systems Laboratory - Physics and Astronomy Department - University of Bologna">
 </div>
 </a>
-<a href="https://travis-ci.com/physycom/datalogger">
-<div class="image">
-<img src="https://travis-ci.com/physycom/datalogger.svg?token=ujjUseBa9hYbKckXBkxJ&branch=master" width="90" height="20" alt="Build Status">
-</div>
-</a>
+
+[![Physycom Continuous Integration](https://github.com/physycom/datalogger/actions/workflows/ccpp.yml/badge.svg)](https://github.com/physycom/datalogger/actions/workflows/ccpp.yml)
 
 ## Purpose
 
