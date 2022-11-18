@@ -29,7 +29,7 @@ if(UNIX AND NOT APPLE)
 endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-find_package(FLTK    REQUIRED)
+find_package(FLTK    CONFIG REQUIRED)
 find_package(OpenGL  REQUIRED)
 find_package(Boost   COMPONENTS chrono date_time filesystem iostreams regex serialization system thread REQUIRED)
 
@@ -62,7 +62,6 @@ add_library(datalog
 target_include_directories(datalog
   PRIVATE
     ${Boost_INCLUDE_DIRS}
-    ${FLTK_INCLUDE_DIR}
 )
 
 target_compile_definitions(datalog
@@ -73,9 +72,7 @@ target_compile_definitions(datalog
 
 target_link_libraries(datalog
   PUBLIC
-    OpenGL::GL
-    OpenGL::GLU
-    ${FLTK_LIBRARIES}
+    fltk_gl
     Boost::boost
     Boost::chrono
     Boost::date_time
@@ -119,19 +116,16 @@ add_executable(file_converter
 target_include_directories(serial_viewer
   PRIVATE
     ${Boost_INCLUDE_DIRS}
-    ${FLTK_INCLUDE_DIR}
 )
 
 target_include_directories(serial_reader
   PRIVATE
     ${Boost_INCLUDE_DIRS}
-    ${FLTK_INCLUDE_DIR}
 )
 
 target_include_directories(file_converter
   PRIVATE
     ${Boost_INCLUDE_DIRS}
-    ${FLTK_INCLUDE_DIR}
 )
 
 target_link_libraries(serial_viewer PRIVATE datalog)
