@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "datalogger",
+  "version": "1.0.0",
+  "homepage": "https://github.com/physycom/datalogger",
+  "description": "Tool that acquires data from different brands of devices through the serial port and dumps them into raw files on disk. It can also plot data in realtime using an FLTK widget.",
+  "dependencies": [
+    "fltk",
+    "opengl",
+    "boost-asio",
+    "boost-bind",
+    "boost-chrono",
+    "boost-date-time",
+    "boost-filesystem",
+    "boost-iostreams",
+    "boost-interprocess",
+    "boost-regex",
+    "boost-serialization",
+    "boost-system",
+    "boost-thread"
+  ]
+}
