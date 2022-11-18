@@ -22,6 +22,7 @@ endif()
 
 project(datalogger)
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules/")
 
 if(UNIX AND NOT APPLE)
   find_package(LibRt REQUIRED)
