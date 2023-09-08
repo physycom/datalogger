@@ -60,8 +60,8 @@ jobs:
     - name: Publish artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ github.event.repository.name }}-*.deb
-        path: build_release
+        name: ${{ github.event.repository.name }}-ubuntu
+        path: build_release/${{ github.event.repository.name }}-*.deb
 
 
   osx-vcpkg:
@@ -106,13 +106,8 @@ jobs:
     - name: Publish artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ github.event.repository.name }}-*.dmg
-        path: build_release
-    - name: Publish artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ github.event.repository.name }}-*.app
-        path: build_release
+        name: ${{ github.event.repository.name }}-macos
+        path: build_release/${{ github.event.repository.name }}-*.dmg
 
 
   win-vcpkg:
@@ -149,10 +144,10 @@ jobs:
 
     - name: Build
       shell: pwsh
-      run: ${{ github.workspace }}/cmake/build.ps1 -UseVCPKG -DoNotUpdateVCPKG -DisableInteractive -DoNotUpdateTOOL -BuildInstaller
+      run: ${{ github.workspace }}/cmake/build.ps1 -UseVCPKG -DoNotUpdateVCPKG -DisableInteractive -DoNotUpdateTOOL -BuildInstaller -ForceLocalVCPKG
 
     - name: Publish artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ github.event.repository.name }}-*.msi
-        path: build_release
+        name: ${{ github.event.repository.name }}-windows
+        path: build_release/${{ github.event.repository.name }}-*.msi
