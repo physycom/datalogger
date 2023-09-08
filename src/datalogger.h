@@ -10,7 +10,7 @@
 
 //#define ENABLE_SLEEP
 #define SLEEP_TIME_MICROSECONDS 2500
-#define SERIAL_PORT_TIMEOUT_SECONDS 3 
+#define SERIAL_PORT_TIMEOUT_SECONDS 3
 
 //#define COMMA_SEPARATION_VALUE ','
 #define COMMA_SEPARATION_VALUE ';'
@@ -18,8 +18,7 @@
 
 #define DIMENSIONE_MAX 1000
 
-#define MAJOR_VERSION 0
-#define MINOR_VERSION 12
+#include "version.h"
 
 #define EPOCH_TIME_2000 946684800
 
@@ -38,7 +37,7 @@
 #define UBX_HEAD_OFFSET   60
 
 #define POS_TIME    0
-#define POS_AX      1 
+#define POS_AX      1
 #define POS_AY      2
 #define POS_AZ      3
 #define POS_GX      4
