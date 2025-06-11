@@ -2,6 +2,7 @@
 // for any question, please mail stefano.sinigardi@gmail.com
 
 #include "serial_tools.h"
+#include <array>
 
 class NavData{
   std::vector<std::string> nav_data; // {0=time, 1=ax, 2=ay, 3=az, 4=gx, 5=gy, 6=gz, 7=lat, 8=lon, 9=alt, 10=speed, 11=heading, 12=qlt, 13=HDOP}
@@ -15,19 +16,19 @@ public:
   void setAcc_s(std::string * acc_data);
   void setAcc(double * acc_data);
   void setAcc(float * acc_data);
-  std::string * getAcc_s();
-  double * getAcc();
+  std::array<std::string,3> getAcc_s() const;
+  std::array<double,3> getAcc() const;
   double getAcc(int index);
 
   void setGyr_s(std::string * gyr_data);
   void setGyr(double * gyr_data);
   void setGyr(float * gyr_data);
-  std::string * getGyr_s();
-  double * getGyr();
+  std::array<std::string,3> getGyr_s() const;
+  std::array<double,3> getGyr() const;
   double getGyr(int index);
 
   void setInertial_s(std::string * inertial_data);
-  double * getInertial();
+  std::array<double,6> getInertial() const;
 
   void setLat_s(std::string lat);
   void setLat(double lat);
@@ -104,15 +105,15 @@ void NavData::setAcc(float * acc_data){
   for (int i = 0; i < 3; i++) nav_data[i + POS_AX] = boost::lexical_cast<std::string>(acc_data[i]);
 };
 
-std::string * NavData::getAcc_s(){
-  auto * acc = new std::string[3];
-  for (int i = 0; i < 3; i++) acc[i] = nav_data[i + POS_AX];
+std::array<std::string,3> NavData::getAcc_s() const{
+  std::array<std::string,3> acc{};
+  for(int i=0;i<3;i++) acc[i]=nav_data[i + POS_AX];
   return acc;
 };
 
-double * NavData::getAcc(){
-  auto * acc = new double[3];
-  for (int i = 0; i < 3; i++) acc[i] = atof(nav_data[i + POS_AX].c_str());
+std::array<double,3> NavData::getAcc() const{
+  std::array<double,3> acc{};
+  for(int i=0;i<3;i++) acc[i]=atof(nav_data[i + POS_AX].c_str());
   return acc;
 };
 
@@ -132,15 +133,15 @@ void NavData::setGyr(float * gyr_data){
   for (int i = 0; i < 3; i++) nav_data[i + POS_GX] = boost::lexical_cast<std::string>(gyr_data[i]);
 };
 
-std::string * NavData::getGyr_s(){
-  auto * gyr = new std::string[3];
-  for (int i = 0; i < 3; i++) gyr[i] = nav_data[i + POS_GX];
+std::array<std::string,3> NavData::getGyr_s() const{
+  std::array<std::string,3> gyr{};
+  for(int i=0;i<3;i++) gyr[i]=nav_data[i + POS_GX];
   return gyr;
 };
 
-double * NavData::getGyr(){
-  auto * gyr = new double[3];
-  for (int i = 0; i < 3; i++) gyr[i] = atof(nav_data[i + POS_GX].c_str());
+std::array<double,3> NavData::getGyr() const{
+  std::array<double,3> gyr{};
+  for(int i=0;i<3;i++) gyr[i]=atof(nav_data[i + POS_GX].c_str());
   return gyr;
 };
 
@@ -152,9 +153,9 @@ void NavData::setInertial_s(std::string * inertial_data){
   for (int i = 0; i < 6; i++) nav_data[i + POS_AX] = inertial_data[i];
 };
 
-double * NavData::getInertial(){
-  double * data = new double[6];
-  for (int i = 0; i < 6; i++) data[i] = atof(nav_data[POS_AX + i].c_str());
+std::array<double,6> NavData::getInertial() const{
+  std::array<double,6> data{};
+  for(int i=0;i<6;i++) data[i] = atof(nav_data[POS_AX + i].c_str());
   return data;
 };
 

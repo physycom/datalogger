@@ -169,6 +169,11 @@ target_link_libraries(serial_viewer PRIVATE datalog)
 target_link_libraries(serial_reader PRIVATE datalog)
 target_link_libraries(file_converter PRIVATE datalog)
 
+enable_testing()
+add_executable(test_navdata tests/test_navdata.cpp)
+target_link_libraries(test_navdata PRIVATE datalog)
+add_test(NAME test_navdata COMMAND test_navdata)
+
 find_package(Doxygen)
 option(BUILD_DOCUMENTATION "Create documentation (requires Doxygen)" ${DOXYGEN_FOUND})
 

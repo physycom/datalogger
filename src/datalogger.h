@@ -92,6 +92,7 @@
 #include <boost/system/error_code.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
+#include <array>
 
 #if defined(USE_HOST_MEMORY)
 #ifdef _WIN32
@@ -110,8 +111,8 @@ using namespace boost::interprocess;
 
 struct Data{
   double d[7]; //{0=index, 1-6:acc e gyr}
-  void set(double *);
-  void setAcc(double *);
+  void set(const std::array<double,6>&);
+  void setAcc(const std::array<double,3>&);
 };
 
 
