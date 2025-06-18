@@ -372,9 +372,9 @@ void GPSData::readData(std::ifstream& inputfile) {
         found = true;
         printf("%02x - %02x:%02x - %02x:%02x - Len: %hi - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, ubx_length, ubx_chk_A, ubx_chk_B);
       }
-      else printf("align_B not valid: %02x:%02x\n", align_A, align_B);
+      else printf("align_B not valid: %02x : %02x\n", align_A, align_B);
     }
-    else printf("align_A not valid : % 02x : % 02x\n", align_A, align_B);
+    else printf("align_A not valid : %02x : %02x\n", align_A, align_B);
   }
 }
 
@@ -431,9 +431,9 @@ void GPSData::readDataStr(SerialStream& serial) {
         found = true;
         printf("%02x - %02x:%02x - %02x:%02x - Len: %hi - %02x:%02x\n", found, align_A, align_B, ubx_class, ubx_id, ubx_length, ubx_chk_A, ubx_chk_B);
       }
-      else printf("align_B not valid: %02x:%02x\n", align_A, align_B);
+      else printf("align_B not valid: %02x : %02x\n", align_A, align_B);
     }
-    else printf("align_A not valid : % 02x : % 02x\n", align_A, align_B);
+    else printf("align_A not valid : %02x : %02x\n", align_A, align_B);
   }
 }
 
@@ -936,4 +936,3 @@ void OctoData::readDataStr(SerialStream& serial, bool extracted_data) {
     }
   }
 }
-

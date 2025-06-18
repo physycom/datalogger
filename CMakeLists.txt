@@ -85,6 +85,10 @@ if(UNIX AND NOT APPLE)
   find_package(X11   REQUIRED)
 endif()
 
+if(APPLE)
+  add_compile_definitions(-DGL_SILENCE_DEPRECATION) # Silence deprecation warnings for OpenGL
+endif()
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Install prefix" FORCE)
 endif()
