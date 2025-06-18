@@ -2,6 +2,8 @@
 // for any question, please mail stefano.sinigardi@gmail.com
 
 #include "datalogger.h"
+#include "shared_memory.hpp"
+#include "data.hpp"
 
 #if defined(USE_HOST_MEMORY)
 

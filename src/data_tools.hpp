@@ -93,6 +93,10 @@ void NavData::setTime(struct tm &gps_time, int nano){
   nav_data[POS_TIME] = date.str();
 }
 
+std::string NavData::getTime(){
+  return nav_data[POS_TIME];
+}
+
 void NavData::setAcc_s(std::string * acc_data){
   for (int i = 0; i < 3; i++) nav_data[i + POS_AX] = acc_data[i];
 };
