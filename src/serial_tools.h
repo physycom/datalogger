@@ -49,7 +49,7 @@ public:
   std::string readLine();
 
 private:
-  boost::asio::io_service io;
+  boost::asio::io_context io;
   boost::asio::serial_port serial;
 };
 
@@ -252,7 +252,7 @@ private:
     const size_t bytesTransferred);
 
 
-  boost::asio::io_service io;               ///< I/O service object
+  boost::asio::io_context io;               ///< I/O context object
   boost::asio::serial_port port;            ///< Serial port object
   boost::asio::deadline_timer timer;        ///< Timer for time-out
   boost::posix_time::time_duration timeout; ///< Read/write time-out
@@ -364,7 +364,7 @@ public:
   */
   SerialDeviceImpl(const SerialOptions& options);
 
-  boost::asio::io_service io; ///< I/O service object
+  boost::asio::io_context io; ///< I/O context object
   boost::asio::serial_port port; ///< Serial port object
   boost::asio::deadline_timer timer; ///< Timer for time-out
   boost::posix_time::time_duration timeout; ///< Read/write time-out
@@ -559,13 +559,13 @@ private:
 
   /**
   * Callback called to start an asynchronous read operation.
-  * This callback is called by the io_service in the spawned thread.
+  * This callback is called by the io_context in the spawned thread.
   */
   void doRead();
 
   /**
   * Callback called at the end of the asynchronous operation.
-  * This callback is called by the io_service in the spawned thread.
+  * This callback is called by the io_context in the spawned thread.
   */
   void readEnd(const boost::system::error_code& error,
     size_t bytes_transferred);
@@ -573,14 +573,14 @@ private:
   /**
   * Callback called to start an asynchronous write operation.
   * If it is already in progress, does nothing.
-  * This callback is called by the io_service in the spawned thread.
+  * This callback is called by the io_context in the spawned thread.
   */
   void doWrite();
 
   /**
   * Callback called at the end of an asynchronous write operation,
   * if there is more data to write, restarts a new write operation.
-  * This callback is called by the io_service in the spawned thread.
+  * This callback is called by the io_context in the spawned thread.
   */
   void writeEnd(const boost::system::error_code& error);
 

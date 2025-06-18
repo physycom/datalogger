@@ -85,6 +85,10 @@ if(UNIX AND NOT APPLE)
   find_package(X11   REQUIRED)
 endif()
 
+if(APPLE)
+  add_compile_definitions(-DGL_SILENCE_DEPRECATION) # Silence deprecation warnings for OpenGL
+endif()
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Install prefix" FORCE)
 endif()
@@ -168,6 +172,14 @@ add_executable(file_converter
 target_link_libraries(serial_viewer PRIVATE datalog)
 target_link_libraries(serial_reader PRIVATE datalog)
 target_link_libraries(file_converter PRIVATE datalog)
+
+enable_testing()
+add_executable(test_navdata tests/test_navdata.cpp)
+target_link_libraries(test_navdata PRIVATE datalog)
+add_test(NAME test_navdata COMMAND test_navdata)
+add_executable(test_data tests/test_data.cpp)
+target_link_libraries(test_data PRIVATE datalog)
+add_test(NAME test_data COMMAND test_data)
 
 find_package(Doxygen)
 option(BUILD_DOCUMENTATION "Create documentation (requires Doxygen)" ${DOXYGEN_FOUND})

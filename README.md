@@ -15,8 +15,15 @@ It acquires data from different brands of devices through the serial port, using
 
 ## Installation
 
-**CMake**, **Powershell** and a **C++11** compatible compiler are required. To build the executable, clone the repo and then type
+
+After the build completes you can run the unit tests with
+
+```bash
+ctest --test-dir build_release
+```
+**CMake**, **PowerShell** and a **C++11** compatible compiler are required. Dependencies are handled through **vcpkg** using the build script provided in the `cmake` submodule. Clone the repository and run
 
 ```pwsh
-./ci/build.ps1 -UseVCPKG
+./cmake/build.ps1 -UseVCPKG
 ```
+On Linux and macOS be sure to install `pwsh` (PowerShell) before executing the command.

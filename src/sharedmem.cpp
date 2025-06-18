@@ -46,11 +46,11 @@ void* get_host_allocated_memory(const char* name){
 #endif
 
 
-void Data::set(double *data) {
+void Data::set(const std::array<double,6>& data) {
   for (int i = 1; i < 7; i++) d[i] = data[i - 1];
 }
 
-void Data::setAcc(double *data) {
+void Data::setAcc(const std::array<double,3>& data) {
   for (int i = 1; i < 4; i++) d[i] = data[i - 1];
 }
 
