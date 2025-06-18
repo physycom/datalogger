@@ -15,6 +15,12 @@ It acquires data from different brands of devices through the serial port, using
 
 ## Installation
 
+
+After the build completes you can run the unit tests with
+
+```bash
+ctest --test-dir build_release
+```
 **CMake**, **PowerShell** and a **C++11** compatible compiler are required. Dependencies are handled through **vcpkg** using the build script provided in the `cmake` submodule. Clone the repository and run
 
 ```pwsh
