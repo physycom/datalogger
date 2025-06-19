@@ -174,12 +174,52 @@ target_link_libraries(serial_reader PRIVATE datalog)
 target_link_libraries(file_converter PRIVATE datalog)
 
 enable_testing()
+
+# Existing tests
 add_executable(test_navdata tests/test_navdata.cpp)
 target_link_libraries(test_navdata PRIVATE datalog)
 add_test(NAME test_navdata COMMAND test_navdata)
+
 add_executable(test_data tests/test_data.cpp)
 target_link_libraries(test_data PRIVATE datalog)
 add_test(NAME test_data COMMAND test_data)
+
+add_executable(test_serialoptions tests/test_serialoptions.cpp)
+target_link_libraries(test_serialoptions PRIVATE datalog)
+add_test(NAME test_serialoptions COMMAND test_serialoptions)
+
+add_executable(test_sharedmemory tests/test_sharedmemory.cpp)
+target_link_libraries(test_sharedmemory PRIVATE datalog)
+add_test(NAME test_sharedmemory COMMAND test_sharedmemory)
+
+# New comprehensive tests
+add_executable(test_swaptools tests/test_swaptools.cpp)
+target_link_libraries(test_swaptools PRIVATE datalog)
+add_test(NAME test_swaptools COMMAND test_swaptools)
+
+add_executable(test_exceptions tests/test_exceptions.cpp)
+target_link_libraries(test_exceptions PRIVATE datalog)
+add_test(NAME test_exceptions COMMAND test_exceptions)
+
+add_executable(test_simpleserial tests/test_simpleserial.cpp)
+target_link_libraries(test_simpleserial PRIVATE datalog)
+add_test(NAME test_simpleserial COMMAND test_simpleserial)
+
+add_executable(test_readresult tests/test_readresult.cpp)
+target_link_libraries(test_readresult PRIVATE datalog)
+add_test(NAME test_readresult COMMAND test_readresult)
+
+add_executable(test_version tests/test_version.cpp)
+target_link_libraries(test_version PRIVATE datalog)
+add_test(NAME test_version COMMAND test_version)
+
+add_executable(test_constants tests/test_constants.cpp)
+target_link_libraries(test_constants PRIVATE datalog)
+add_test(NAME test_constants COMMAND test_constants)
+
+add_executable(test_integration tests/test_integration.cpp)
+target_link_libraries(test_integration PRIVATE datalog)
+add_test(NAME test_integration COMMAND test_integration)
 
 find_package(Doxygen)
 option(BUILD_DOCUMENTATION "Create documentation (requires Doxygen)" ${DOXYGEN_FOUND})

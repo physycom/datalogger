@@ -1,6 +1,8 @@
 // Copyright 2014, 2015 Stefano Sinigardi, Alessandro Fabbri
 // for any question, please mail stefano.sinigardi@gmail.com
 
+#include <cstdint>
+
 int is_big_endian()
 {
   union {
