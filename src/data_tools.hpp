@@ -93,7 +93,7 @@ void NavData::setTime(struct tm &gps_time, int nano){
   nav_data[POS_TIME] = date.str();
 }
 
-std::string NavData::getTime(){
+std::string NavData::getTime() const {
   return nav_data[POS_TIME];
 }
 
