@@ -93,6 +93,8 @@
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
 #include <array>
+#include "data.hpp"
+#include "shared_memory.hpp"
 
 #if defined(USE_HOST_MEMORY)
 #ifdef _WIN32
@@ -109,18 +111,3 @@ using namespace boost::interprocess;
 
 
 
-struct Data{
-  double d[7]; //{0=index, 1-6:acc e gyr}
-  void set(const std::array<double,6>&);
-  void setAcc(const std::array<double,3>&);
-};
-
-
-
-#if defined(USE_HOST_MEMORY)
-
-void remove_host_memory(const char*);
-void* allocate_host_memory(const char* , size_t );
-void* get_host_allocated_memory(const char* );
-
-#endif

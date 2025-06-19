@@ -11,7 +11,7 @@ public:
   void setTime(time_t);
   void setTime_s(std::string time);
   void setTime(struct tm &gps_time, int nano);
-  std::string getTime();
+  std::string getTime() const;
 
   void setAcc_s(std::string * acc_data);
   void setAcc(double * acc_data);
@@ -91,6 +91,10 @@ void NavData::setTime(struct tm &gps_time, int nano){
   date << now->tm_year + 1900 << TIME_SEPARATION_VALUE << (now->tm_mon + 1) << TIME_SEPARATION_VALUE << now->tm_mday << TIME_SEPARATION_VALUE << now->tm_hour << TIME_SEPARATION_VALUE << now->tm_min << TIME_SEPARATION_VALUE
     << std::fixed << std::setprecision(3) << now->tm_sec + nano*1e-9;
   nav_data[POS_TIME] = date.str();
+}
+
+std::string NavData::getTime() const {
+  return nav_data[POS_TIME];
 }
 
 void NavData::setAcc_s(std::string * acc_data){
