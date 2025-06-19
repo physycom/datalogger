@@ -11,7 +11,7 @@ public:
   void setTime(time_t);
   void setTime_s(std::string time);
   void setTime(struct tm &gps_time, int nano);
-  std::string getTime();
+  std::string getTime() const;
 
   void setAcc_s(std::string * acc_data);
   void setAcc(double * acc_data);
